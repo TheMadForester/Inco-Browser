@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>New Tab</title>
+<style>
+  html, body {
+    margin: 0; height: 100%;
+    background: #0e0e0e; color: #888;
+    font-family: system-ui, sans-serif;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .box { text-align: center; width: min(620px, 92vw); }
+  img { width: 220px; height: 220px; object-fit: contain; }
+  .row {
+    margin: 28px 0 16px;
+    display: flex; gap: 10px; align-items: center;
+  }
+  input[type="search"] {
+    flex: 1;
+    box-sizing: border-box;
+    background: #1a1a1a; color: #eee;
+    border: 1px solid #2a2a2a; border-radius: 12px;
+    padding: 14px 16px; font-size: 16px; outline: none;
+  }
+  .onion {
+    flex: 0 0 auto;
+    display: flex; align-items: center; gap: 8px;
+    background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 12px; padding: 8px 12px; color: #ddd;
+    text-decoration: none; font-size: 13px; user-select: none;
+  }
+  .onion:hover { background: #222; color: #fff; }
+  .sw {
+    width: 34px; height: 20px; border-radius: 10px;
+    background: #333; position: relative;
+  }
+  .sw i {
+    position: absolute; top: 2px; left: 2px;
+    width: 16px; height: 16px; border-radius: 50%;
+    background: #ccc;
+  }
+  #pins { margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  #pins a {
+    color: #ddd; text-decoration: none; font-size: 13px;
+    background: #1a1a1a; border: 1px solid #2a2a2a;
+    border-radius: 999px; padding: 6px 12px;
+  }
+  #pins a:hover { background: #242424; color: #fff; }
+  p { margin: 16px 0 0; font-size: 15px; }
+  a { color: #ddd; }
+</style>
+</head>
+<body>
+  <div class="box">
+    <img src="inco.png" alt="">
+    <form class="row" action="https://html.duckduckgo.com/html/" method="get">
+      <input type="hidden" name="kae" value="d">
+      <input type="search" name="q" placeholder="Search privately" autofocus>
+      <a class="onion" href="#" onclick="document.title='inco-onion-toggle-'+Date.now();return false;"><span class="sw"><i></i></span>Onionize</a>
+    </form>
+    <div id="pins"></div>
+    <p>What means <a href="qrc:/about-private.html">Private</a> · <a href="qrc:/about-filter.html">Inco Filter</a></p>
+  </div>
+<script>
+(function(){
+  const on = location.hash === '#onion';
+  const a = document.querySelector('.onion');
+  if (!a) return;
+  if (on) {
+    a.classList.add('on');
+    a.querySelector('.sw').style.background = '#b0893e';
+    a.querySelector('i').style.left = '16px';
+    a.querySelector('i').style.background = '#fff';
+  }
+})();
+</script>
+</body>
+</html>

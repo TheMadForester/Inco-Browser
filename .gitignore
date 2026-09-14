@@ -1,0 +1,8 @@
+build/
+build-release/
+dist/
+*.AppImage
+*~
+*.user
+.cache/
+vault.bin

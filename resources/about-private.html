@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>What private means</title>
+<style>
+  html, body { margin: 0; background: #0e0e0e; color: #ddd; font-family: system-ui, sans-serif; }
+  main { max-width: 640px; margin: 40px auto; padding: 0 20px 72px; line-height: 1.6; }
+  h1 { font-size: 28px; font-weight: 600; color: #fff; margin: 0 0 12px; }
+  h2 { font-size: 16px; color: #fff; margin: 28px 0 8px; }
+  p, li { color: #b7b7b7; }
+  a { color: #e8e8e8; }
+  .card { background: #161616; border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
+  .muted { color: #777; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="qrc:/newtab.html">← New tab</a></p>
+  <h1>What private means</h1>
+  <p>Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.</p>
+
+  <div class="card">
+    <strong style="color:#fff">Every normal tab</strong>
+    <ul>
+      <li>No browsing history and no session restore.</li>
+      <li>Cookies and cache are cleared when Inco quits, unless you keep logins.</li>
+      <li>Bookmarks stay off until you enable them.</li>
+      <li>Passwords live in an AES-256-GCM vault with a master password, if you want that.</li>
+      <li>Pages cannot talk to localhost or your LAN (blocks typical browser port scans).</li>
+      <li><a href="qrc:/about-filter.html">Inco Filter</a> blocks a built-in list of ad/tracker hosts.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <strong style="color:#fff">Onionize</strong>
+    <ul>
+      <li>Opens a new process that starts bundled Tor and uses SOCKS.</li>
+      <li>That window can hide your IP from the site. Confirm on check.torproject.org.</li>
+      <li>It does not use your vault or bookmarks.</li>
+      <li>It does not make you look like every other Tor user. Fingerprint still exists.</li>
+      <li>Turning Onionize off closes that window.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <strong style="color:#fff">Searches</strong>
+    <ul>
+      <li>HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.</li>
+      <li>A network that intercepts HTTPS can still read the query.</li>
+      <li>DuckDuckGo sees the words. On a normal tab it can also see your IP.</li>
+      <li>On a working Onionize window, DDG sees a Tor exit instead of your IP.</li>
+    </ul>
+  </div>
+
+  <h2>Not this product</h2>
+  <ul>
+    <li>Not a VPN.</li>
+    <li>Not Tor Browser.</li>
+    <li>Not an ad blocker.</li>
+  </ul>
+  <p class="muted">Private = no diary on disk. Onionize = Tor path, if the check page is green.</p>
+</main>
+</body>
+</html>

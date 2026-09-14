@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Inco Filter</title>
+<style>
+  html, body { margin: 0; background: #0e0e0e; color: #ddd; font-family: system-ui, sans-serif; }
+  main { max-width: 640px; margin: 40px auto; padding: 0 20px 72px; line-height: 1.6; }
+  h1 { font-size: 28px; font-weight: 600; color: #fff; margin: 0 0 12px; }
+  p, li { color: #b7b7b7; }
+  a { color: #e8e8e8; }
+  .card { background: #161616; border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
+  .muted { color: #777; }
+</style>
+</head>
+<body>
+<main>
+  <p><a href="qrc:/newtab.html">← New tab</a> · <a href="qrc:/about-private.html">Private</a></p>
+  <h1>Inco Filter</h1>
+  <p>A short host list Inco blocks before the page loads. It is not uBlock Origin and not EasyList.</p>
+
+  <div class="card">
+    <strong style="color:#fff">What it does</strong>
+    <ul>
+      <li>Stops requests to known ad and tracker hostnames (and their subdomains).</li>
+      <li>Runs in the browser process. No extension API.</li>
+      <li>On by default. Turn it off in Settings.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <strong style="color:#fff">What it does not</strong>
+    <ul>
+      <li>No cosmetic hiding (leftover empty ad boxes can remain).</li>
+      <li>No per-element rules, no community lists updating hourly.</li>
+      <li>Will not match uBlock on YouTube or heavy sites.</li>
+    </ul>
+  </div>
+
+  <p class="muted">The list lives in the app as filter-hosts.txt. Growing it is how the filter gets better, not by installing someone else’s extension.</p>
+</main>
+</body>
+</html>

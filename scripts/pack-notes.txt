@@ -1,0 +1,6 @@
+Cross-distro:
+- Ship the IncoBrowser binary + Qt WebEngine libs (or use the distro Qt packages).
+- Copy vault.bin between machines. Same master password.
+- bookmarks.json is optional and separate.
+- AppImage: look at linuxdeploy + linuxdeploy-plugin-qt once the binary is stable.
+- Flatpak is a whole manifest; do that after the app stops changing every hour.

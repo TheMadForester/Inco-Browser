@@ -1,0 +1,23 @@
+<RCC>
+    <qresource prefix="/">
+        <file>inco.png</file>
+        <file>inco-browser.png</file>
+        <file>newtab.html</file>
+        <file>about-private.html</file>
+        <file>about-filter.html</file>
+        <file>onionize.html</file>
+        <file>icons/back.svg</file>
+        <file>icons/forward.svg</file>
+        <file>icons/reload.svg</file>
+        <file>icons/plus.svg</file>
+        <file>icons/star.svg</file>
+        <file>icons/star-fill.svg</file>
+        <file>icons/bookmarks.svg</file>
+        <file>icons/key.svg</file>
+        <file>icons/settings.svg</file>
+        <file>icons/close.svg</file>
+        <file>icons/speaker-off.svg</file>
+        <file>icons/speaker.svg</file>
+            <file>filter-hosts.txt</file>
+    </qresource>
+</RCC>
