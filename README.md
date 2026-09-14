@@ -27,24 +27,27 @@ Inco is a small Qt WebEngine browser for Linux.
 ## Build
 
 ### Debian / Ubuntu
-
+```bash
 sudo apt install build-essential cmake ninja-build curl qt6-base-dev qt6-webengine-dev libssl-dev pkg-config
+```
 
 ### Fedora
-
+```bash
 sudo dnf install gcc-c++ cmake ninja-build qt6-qtbase-devel qt6-qtwebengine-devel openssl-devel curl
+```
 
 ### Arch
-
+```bash
 sudo pacman -S base-devel cmake ninja qt6-base qt6-webengine openssl curl
+```
 
 Then on all three:
-
+```bash
 ./scripts/fetch-tor.sh
 cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/IncoBrowser
-
+```
 ## Install
 
 ./scripts/install.sh
