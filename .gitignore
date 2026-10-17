@@ -6,3 +6,4 @@ dist/
 *.user
 .cache/
 vault.bin
+build-arch/
