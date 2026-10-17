@@ -10,6 +10,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QComboBox>
 #include <QPushButton>
 #include <QPlainTextEdit>
 #include <QNetworkAccessManager>
@@ -29,68 +30,89 @@ SettingsPage::SettingsPage(IncoSettings* settings, BrowserProfile* profile,
     root->setContentsMargins(40, 28, 40, 28);
     root->setSpacing(14);
 
-    auto* title = new QLabel("Settings");
+    auto* title = new QLabel(I18n::tr("settings"));
     title->setStyleSheet("font-size: 28px; font-weight: 600; color: #fff;");
     root->addWidget(title);
 
-    auto* privacy = new QGroupBox("Privacy");
+    auto* langGroup = new QGroupBox(I18n::tr("settings.language"));
+    auto* langLay = new QVBoxLayout(langGroup);
+    auto* langCombo = new QComboBox;
+    langCombo->addItem(I18n::tr("lang.system"), "system");
+    langCombo->addItem(I18n::tr("lang.en"), "en");
+    langCombo->addItem(I18n::tr("lang.de"), "de");
+    langCombo->addItem(I18n::tr("lang.fr"), "fr");
+    langCombo->addItem(I18n::tr("lang.it"), "it");
+    langCombo->addItem(I18n::tr("lang.zh"), "zh");
+    const int idx = langCombo->findData(settings->language);
+    langCombo->setCurrentIndex(idx >= 0 ? idx : 0);
+    langLay->addWidget(langCombo);
+    root->addWidget(langGroup);
+
+    connect(langCombo, &QComboBox::currentIndexChanged, this, [this, langCombo] {
+        m_settings->language = langCombo->currentData().toString();
+        I18n::setLanguage(m_settings->language);
+        persist();
+        m_main->refreshSettings();
+    });
+
+    auto* privacy = new QGroupBox(I18n::tr("settings.privacy"));
     auto* p = new QVBoxLayout(privacy);
-    m_cookies = addCheck(p, "Clear cookies when Inco closes", settings->clearCookiesOnExit);
-    m_cache = addCheck(p, "Clear cache when Inco closes", settings->clearCacheOnExit);
-    m_popups = addCheck(p, "Block popups", settings->blockPopups);
-    m_logins = addCheck(p, "Keep website logins (persistent cookies)", settings->keepLogins);
-    m_https = addCheck(p, "HTTPS-only (upgrade http to https)", settings->httpsOnly);
+    m_cookies = addCheck(p, I18n::tr("clear.cookies"), settings->clearCookiesOnExit);
+    m_cache = addCheck(p, I18n::tr("clear.cache"), settings->clearCacheOnExit);
+    m_popups = addCheck(p, I18n::tr("block.popups"), settings->blockPopups);
+    m_logins = addCheck(p, I18n::tr("keep.logins"), settings->keepLogins);
+    m_https = addCheck(p, I18n::tr("https.only"), settings->httpsOnly);
     /* filter master is the group if we wrap it */ 
-    m_filter = addCheck(p, "Inco Filter (block known ad/tracker hosts)", settings->incoFilter);
-    p->addWidget(new QLabel("Also block these hosts (one per line)"));
+    m_filter = addCheck(p, I18n::tr("inco.filter"), settings->incoFilter);
+    p->addWidget(new QLabel(I18n::tr("filter.extra")));
     m_filterExtra = new QPlainTextEdit(settings->filterExtra);
     m_filterExtra->setPlaceholderText("tracker.example.com");
     m_filterExtra->setFixedHeight(90);
     p->addWidget(m_filterExtra);
-    p->addWidget(new QLabel("Never block these hosts"));
+    p->addWidget(new QLabel(I18n::tr("filter.allow")));
     m_filterAllow = new QPlainTextEdit(settings->filterAllow);
     m_filterAllow->setPlaceholderText("cdn.example.com");
     m_filterAllow->setFixedHeight(70);
     p->addWidget(m_filterAllow);
     connect(m_filterExtra, &QPlainTextEdit::textChanged, this, [this] { persist(); });
     connect(m_filterAllow, &QPlainTextEdit::textChanged, this, [this] { persist(); });
-    auto* wipeBtn = new QPushButton("Clear cookies & cache now");
+    auto* wipeBtn = new QPushButton(I18n::tr("wipe.now"));
     p->addWidget(wipeBtn);
     root->addWidget(privacy);
 
-    m_passGroup = new QGroupBox("Passwords");
+    m_passGroup = new QGroupBox(I18n::tr("settings.passwords"));
     m_passGroup->setCheckable(true);
     m_passGroup->setChecked(settings->savePasswords);
     auto* l = new QVBoxLayout(m_passGroup);
-    m_autofill = addCheck(l, "Autofill when vault is unlocked (exact host, one match)", settings->autofillLogins);
-    auto* vaultBtn = new QPushButton("Change vault master password");
+    m_autofill = addCheck(l, I18n::tr("autofill"), settings->autofillLogins);
+    auto* vaultBtn = new QPushButton(I18n::tr("change.vault"));
     l->addWidget(vaultBtn);
     root->addWidget(m_passGroup);
 
-    m_bmGroup = new QGroupBox("Bookmarks");
+    m_bmGroup = new QGroupBox(I18n::tr("settings.bookmarks"));
     m_bmGroup->setCheckable(true);
     m_bmGroup->setChecked(settings->bookmarksEnabled);
     auto* b = new QVBoxLayout(m_bmGroup);
-    m_bmHome = addCheck(b, "Show bookmarks on the new tab page", settings->showBookmarksOnHome);
+    m_bmHome = addCheck(b, I18n::tr("show.bookmarks"), settings->showBookmarksOnHome);
     b->addWidget(new QLabel("Star a page in the toolbar to pin it here."));
     root->addWidget(m_bmGroup);
 
-    auto* search = new QGroupBox("Search");
+    auto* search = new QGroupBox(I18n::tr("settings.search"));
     auto* s = new QVBoxLayout(search);
-    s->addWidget(new QLabel("Search URL (%s = query)"));
+    s->addWidget(new QLabel(I18n::tr("search.url")));
     m_search = new QLineEdit(settings->searchTemplate);
     s->addWidget(m_search);
     root->addWidget(search);
 
-    auto* files = new QGroupBox("Files");
+    auto* files = new QGroupBox(I18n::tr("settings.files"));
     auto* f = new QVBoxLayout(files);
-    m_dirBtn = new QPushButton("Download folder: " + settings->downloadDir);
+    m_dirBtn = new QPushButton(I18n::tr("download.folder") + " " + settings->downloadDir);
     f->addWidget(m_dirBtn);
     root->addWidget(files);
 
-    auto* anon = new QGroupBox("Anonymous sessions");
+    auto* anon = new QGroupBox(I18n::tr("settings.anon"));
     auto* a = new QVBoxLayout(anon);
-    m_tor = addCheck(a, "Route anonymous windows through system Tor (127.0.0.1:9050)", settings->useTorForAnon);
+    m_tor = addCheck(a, I18n::tr("route.tor"), settings->useTorForAnon);
     const QString torBin = QFileInfo(QCoreApplication::applicationDirPath() + "/../tor/tor").exists()
         ? QCoreApplication::applicationDirPath() + "/../tor/tor"
         : QStringLiteral("/usr/bin/tor");
@@ -98,8 +120,8 @@ SettingsPage::SettingsPage(IncoSettings* settings, BrowserProfile* profile,
     a->addWidget(new QLabel(haveTor ? I18n::tr("tor.status.idle") : I18n::tr("tor.status.missing")));
     a->addWidget(new QLabel(I18n::tr("tor.help")));
     auto* ver = new QLabel("Bundled Tor: checking…");
-    auto* chk = new QPushButton("Check for Tor update");
-    auto* upd = new QPushButton("Update bundled Tor");
+    auto* chk = new QPushButton(I18n::tr("check.tor"));
+    auto* upd = new QPushButton(I18n::tr("update.tor"));
     a->addWidget(ver);
     a->addWidget(chk);
     a->addWidget(upd);
@@ -163,7 +185,7 @@ SettingsPage::SettingsPage(IncoSettings* settings, BrowserProfile* profile,
 
     auto* note = new QLabel(
         "Data dir: " + QStandardPaths::writableLocation(QStandardPaths::AppConfigLocation) +
-        "\nNo Tor. No VPN. Privacy here means local residue."
+        "\n" + I18n::tr("data.note")
     );
     note->setWordWrap(true);
     note->setStyleSheet("color:#777;");

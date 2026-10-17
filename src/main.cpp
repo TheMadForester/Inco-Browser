@@ -1,4 +1,6 @@
 #include "MainWindow.hpp"
+#include "I18n.hpp"
+#include "SettingsStore.hpp"
 
 #include <QApplication>
 #include <QDir>
@@ -118,6 +120,11 @@ int main(int argc, char* argv[])
     QApplication::setApplicationVersion("0.1.0");
     QApplication::setOrganizationName("Inco");
     QApplication::setWindowIcon(QIcon(":/inco-browser.png"));
+    {
+        SettingsStore store;
+        const auto s = store.load();
+        I18n::setLanguage(s.language);
+    }
 
     auto* window = new MainWindow(anon, tor);
     window->show();

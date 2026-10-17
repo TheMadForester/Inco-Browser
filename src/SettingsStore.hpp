@@ -17,11 +17,12 @@ struct IncoSettings
     bool incoFilter = true;
     QString filterExtra;
     QString filterAllow;
-    QString searchTemplate = QStringLiteral("https://html.duckduckgo.com/html/?kae=d&q=%s");
+    QString searchTemplate = QStringLiteral("https://duckduckgo.com/?q=%s");
     bool useTorForAnon = false;
     QString torHost = QStringLiteral("127.0.0.1");
     int torPort = 9050;
     QString downloadDir;
+    QString language = QStringLiteral("system");
 };
 
 class SettingsStore

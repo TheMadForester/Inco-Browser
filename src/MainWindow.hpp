@@ -32,6 +32,7 @@ public:
     void checkTorStatus();
     void openAnonymousSession();
     void changeMasterPassword();
+    void refreshSettings();
     bool httpsOnly() const;
     void setMuted(bool on);
 public slots:

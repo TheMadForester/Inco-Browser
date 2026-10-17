@@ -26,6 +26,7 @@ IncoSettings SettingsStore::load() const
     s.downloadDir = m_settings.value(
         "downloadDir",
         QStandardPaths::writableLocation(QStandardPaths::DownloadLocation)).toString();
+    s.language = m_settings.value("language", "system").toString();
     QDir().mkpath(s.downloadDir);
     if (s.keepLogins)
         s.clearCookiesOnExit = false;
@@ -51,4 +52,5 @@ void SettingsStore::save(const IncoSettings& s)
     m_settings.setValue("torHost", s.torHost);
     m_settings.setValue("torPort", s.torPort);
     m_settings.setValue("downloadDir", s.downloadDir);
+    m_settings.setValue("language", s.language);
 }

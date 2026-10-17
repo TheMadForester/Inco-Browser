@@ -1,4 +1,5 @@
 #include "MainWindow.hpp"
+#include "I18n.hpp"
 #include <QColor>
 #include "SettingsPage.hpp"
 #include <QNetworkAccessManager>
@@ -401,6 +402,13 @@ void MainWindow::wireView(QWebEngineView* view)
             setTabIcon(view, icon);
     });
     connect(view, &QWebEngineView::loadFinished, this, [this, view](bool ok) {
+        if (ok && view->url().scheme() == QLatin1String("qrc")) {
+            const QString lang = I18n::currentLang();
+            view->page()->runJavaScript(
+                QStringLiteral("if (window.incoApplyLang) window.incoApplyLang('%1');").arg(lang)
+            );
+        }
+
         if (view->url().scheme() == QLatin1String("qrc"))
             setTabIcon(view, QIcon(":/inco-browser.png"));
         else
@@ -844,6 +852,19 @@ void MainWindow::wipeNow()
     wipe.clearCacheOnExit = true;
     m_profile.wipeOnExit(wipe);
     QMessageBox::information(this, "Privacy", "Cookies and cache cleared for this profile.");
+}
+
+void MainWindow::refreshSettings()
+{
+    for (int i = 0; i < m_tabs->count(); ++i) {
+        if (m_tabs->widget(i) &&
+            m_tabs->widget(i)->objectName() == QLatin1String("settingsPage")) {
+            m_tabs->widget(i)->deleteLater();
+            m_tabs->removeTab(i);
+            break;
+        }
+    }
+    showSettings();
 }
 
 void MainWindow::showSettings()

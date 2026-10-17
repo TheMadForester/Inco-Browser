@@ -1,0 +1,5 @@
+/home/toastlover/Projects/IncoBrowser/build-arch/CMakeFiles/IncoBrowser.dir
+/home/toastlover/Projects/IncoBrowser/build-arch/CMakeFiles/edit_cache.dir
+/home/toastlover/Projects/IncoBrowser/build-arch/CMakeFiles/rebuild_cache.dir
+/home/toastlover/Projects/IncoBrowser/build-arch/CMakeFiles/IncoBrowser_autogen_timestamp_deps.dir
+/home/toastlover/Projects/IncoBrowser/build-arch/CMakeFiles/IncoBrowser_autogen.dir

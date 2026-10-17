@@ -1,0 +1,2 @@
+set(__QT_DEPLOY_TARGET_IncoBrowser_FILE /home/toastlover/Projects/IncoBrowser/build-arch/IncoBrowser)
+set(__QT_DEPLOY_TARGET_IncoBrowser_TYPE EXECUTABLE)

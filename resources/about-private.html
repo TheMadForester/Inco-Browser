@@ -16,50 +16,118 @@
 </head>
 <body>
 <main>
-  <p><a href="qrc:/newtab.html">← New tab</a></p>
-  <h1>What private means</h1>
-  <p>Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.</p>
+  <p><a href="qrc:/newtab.html">← <span data-i18n="newtab">New tab</span></a></p>
+  <h1 data-i18n="about.title">What private means</h1>
+  <p data-i18n="about.intro">Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.</p>
 
   <div class="card">
-    <strong style="color:#fff">Every normal tab</strong>
+    <strong style="color:#fff" data-i18n="about.normal">Every normal tab</strong>
     <ul>
-      <li>No browsing history and no session restore.</li>
-      <li>Cookies and cache are cleared when Inco quits, unless you keep logins.</li>
-      <li>Bookmarks stay off until you enable them.</li>
-      <li>Passwords live in an AES-256-GCM vault with a master password, if you want that.</li>
-      <li>Pages cannot talk to localhost or your LAN (blocks typical browser port scans).</li>
-      <li><a href="qrc:/about-filter.html">Inco Filter</a> blocks a built-in list of ad/tracker hosts.</li>
+      <li data-i18n="about.nohistory">No browsing history and no session restore.</li>
+      <li data-i18n="about.cookies">Cookies and cache are cleared when Inco quits, unless you keep logins.</li>
+      <li data-i18n="about.bookmarks">Bookmarks stay off until you enable them.</li>
+      <li data-i18n="about.passwords">Passwords live in an AES-256-GCM vault with a master password, if you want that.</li>
+      <li data-i18n="about.lan">Pages cannot talk to localhost or your LAN (blocks typical browser port scans).</li>
+      <li><a href="qrc:/about-filter.html">Inco Filter</a> <span data-i18n="about.filter">blocks a built-in list of ad/tracker hosts.</span></li>
     </ul>
   </div>
 
   <div class="card">
-    <strong style="color:#fff">Onionize</strong>
+    <strong style="color:#fff" data-i18n="onionize">Onionize</strong>
     <ul>
-      <li>Opens a new process that starts bundled Tor and uses SOCKS.</li>
-      <li>That window can hide your IP from the site. Confirm on check.torproject.org.</li>
-      <li>It does not use your vault or bookmarks.</li>
-      <li>It does not make you look like every other Tor user. Fingerprint still exists.</li>
-      <li>Turning Onionize off closes that window.</li>
+      <li data-i18n="about.onion1">Opens a new process that starts bundled Tor and uses SOCKS.</li>
+      <li data-i18n="about.onion2">That window can hide your IP from the site. Confirm on check.torproject.org.</li>
+      <li data-i18n="about.onion3">It does not use your vault or bookmarks.</li>
+      <li data-i18n="about.onion4">It does not make you look like every other Tor user. Fingerprint still exists.</li>
+      <li data-i18n="about.onion5">Turning Onionize off closes that window.</li>
     </ul>
   </div>
 
   <div class="card">
-    <strong style="color:#fff">Searches</strong>
+    <strong style="color:#fff" data-i18n="about.searches">Searches</strong>
     <ul>
-      <li>HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.</li>
-      <li>A network that intercepts HTTPS can still read the query.</li>
-      <li>DuckDuckGo sees the words. On a normal tab it can also see your IP.</li>
-      <li>On a working Onionize window, DDG sees a Tor exit instead of your IP.</li>
+      <li data-i18n="about.search1">HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.</li>
+      <li data-i18n="about.search2">A network that intercepts HTTPS can still read the query.</li>
+      <li data-i18n="about.search3">DuckDuckGo sees the words. On a normal tab it can also see your IP.</li>
+      <li data-i18n="about.search4">On a working Onionize window, DDG sees a Tor exit instead of your IP.</li>
     </ul>
   </div>
 
-  <h2>Not this product</h2>
+  <h2 data-i18n="about.not">Not this product</h2>
   <ul>
-    <li>Not a VPN.</li>
-    <li>Not Tor Browser.</li>
-    <li>Not an ad blocker.</li>
+    <li data-i18n="about.notvpn">Not a VPN.</li>
+    <li data-i18n="about.nottor">Not Tor Browser.</li>
+    <li data-i18n="about.notad">Not an ad blocker.</li>
   </ul>
-  <p class="muted">Private = no diary on disk. Onionize = Tor path, if the check page is green.</p>
+  <p class="muted" data-i18n="about.footer">Private = no diary on disk. Onionize = Tor path, if the check page is green.</p>
 </main>
+<script>
+const T = {
+  en: {
+    "newtab": "New tab",
+    "about.title": "What private means",
+    "about.intro": "Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.",
+    "about.normal": "Every normal tab",
+    "about.nohistory": "No browsing history and no session restore.",
+    "about.cookies": "Cookies and cache are cleared when Inco quits, unless you keep logins.",
+    "about.bookmarks": "Bookmarks stay off until you enable them.",
+    "about.passwords": "Passwords live in an AES-256-GCM vault with a master password, if you want that.",
+    "about.lan": "Pages cannot talk to localhost or your LAN (blocks typical browser port scans).",
+    "about.filter": "blocks a built-in list of ad/tracker hosts.",
+    "onionize": "Onionize",
+    "about.onion1": "Opens a new process that starts bundled Tor and uses SOCKS.",
+    "about.onion2": "That window can hide your IP from the site. Confirm on check.torproject.org.",
+    "about.onion3": "It does not use your vault or bookmarks.",
+    "about.onion4": "It does not make you look like every other Tor user. Fingerprint still exists.",
+    "about.onion5": "Turning Onionize off closes that window.",
+    "about.searches": "Searches",
+    "about.search1": "HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.",
+    "about.search2": "A network that intercepts HTTPS can still read the query.",
+    "about.search3": "DuckDuckGo sees the words. On a normal tab it can also see your IP.",
+    "about.search4": "On a working Onionize window, DDG sees a Tor exit instead of your IP.",
+    "about.not": "Not this product",
+    "about.notvpn": "Not a VPN.",
+    "about.nottor": "Not Tor Browser.",
+    "about.notad": "Not an ad blocker.",
+    "about.footer": "Private = no diary on disk. Onionize = Tor path, if the check page is green."
+  },
+  de: {
+    "newtab": "Neuer Tab",
+    "about.title": "Was privat bedeutet",
+    "about.intro": "Inco ist auf diesem Computer standardmäßig privat. Anonymität ist ein separates Fenster mit Tor. Das ist kein Tor Browser.",
+    "about.normal": "Jeder normale Tab",
+    "about.nohistory": "Keine Verlaufshistorie und keine Sitzungswiederherstellung.",
+    "about.cookies": "Cookies und Cache werden beim Beenden gelöscht, außer du behältst Logins.",
+    "about.bookmarks": "Lesezeichen bleiben aus, bis du sie aktivierst.",
+    "about.passwords": "Passwörter liegen in einem AES-256-GCM-Tresor mit Master-Passwort, falls gewünscht.",
+    "about.lan": "Seiten können nicht mit localhost oder deinem LAN sprechen.",
+    "about.filter": "blockiert eine eingebaute Liste von Ad-/Tracker-Hosts.",
+    "onionize": "Onionize",
+    "about.onion1": "Öffnet einen neuen Prozess, der gebündeltes Tor startet und SOCKS nutzt.",
+    "about.onion2": "Dieses Fenster kann deine IP vor der Seite verstecken. Prüfe auf check.torproject.org.",
+    "about.onion3": "Es nutzt weder Tresor noch Lesezeichen.",
+    "about.onion4": "Es lässt dich nicht wie jeden anderen Tor-Nutzer aussehen. Fingerprint bleibt.",
+    "about.onion5": "Onionize ausschalten schließt dieses Fenster.",
+    "about.searches": "Suchen",
+    "about.search1": "HTTPS versteckt die Anfrage vor einer normalen Firewall. Sie sehen trotzdem, dass du DuckDuckGo nutzt.",
+    "about.search2": "Ein Netzwerk das HTTPS abfängt kann die Anfrage trotzdem lesen.",
+    "about.search3": "DuckDuckGo sieht die Wörter. Auf einem normalen Tab auch deine IP.",
+    "about.search4": "Auf einem funktionierenden Onionize-Fenster sieht DDG einen Tor-Exit statt deiner IP.",
+    "about.not": "Nicht dieses Produkt",
+    "about.notvpn": "Kein VPN.",
+    "about.nottor": "Kein Tor Browser.",
+    "about.notad": "Kein Ad-Blocker.",
+    "about.footer": "Privat = kein Tagebuch auf der Platte. Onionize = Tor-Pfad, wenn die Check-Seite grün ist."
+  }
+};
+function applyLang(lang) {
+  const t = T[lang] || T.en;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const k = el.getAttribute("data-i18n");
+    if (t[k]) el.textContent = t[k];
+  });
+}
+window.incoApplyLang = applyLang;
+</script>
 </body>
 </html>
