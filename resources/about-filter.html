@@ -3,41 +3,187 @@
 <head>
 <meta charset="utf-8">
 <title>Inco Filter</title>
-<style>
-  html, body { margin: 0; background: #0e0e0e; color: #ddd; font-family: system-ui, sans-serif; }
-  main { max-width: 640px; margin: 40px auto; padding: 0 20px 72px; line-height: 1.6; }
-  h1 { font-size: 28px; font-weight: 600; color: #fff; margin: 0 0 12px; }
-  p, li { color: #b7b7b7; }
-  a { color: #e8e8e8; }
-  .card { background: #161616; border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
-  .muted { color: #777; }
-</style>
+<link rel="stylesheet" href="inco.css">
 </head>
 <body>
-<main>
-  <p><a href="qrc:/newtab.html">← New tab</a> · <a href="qrc:/about-private.html">Private</a></p>
-  <h1>Inco Filter</h1>
-  <p>A short host list Inco blocks before the page loads. It is not uBlock Origin and not EasyList.</p>
+  <main class="page">
+    <header class="page-head rise">
+      <nav class="nav"><a class="btn" href="qrc:/newtab.html">← <span data-i18n="newtab">New tab</span></a><a class="btn" href="qrc:/about-private.html" data-i18n="private">Private</a></nav>
+      <h1 class="page-title" data-i18n="filter.title">Inco Filter</h1>
+      <p class="page-subtitle" data-i18n="filter.intro">Inco's own request filter. It stops requests to ad, tracker and malware hosts before they leave the browser.</p>
+    </header>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="filter.does">What it does</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.does1">Stops requests to known ad, tracker and malware hostnames (and their subdomains).</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.does2">Runs in the browser process, not as an extension.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.does4">Includes host block lists taken from uBlock Origin Lite (GPLv3): uBlock filters, EasyList, EasyPrivacy, Peter Lowe's list and malware lists.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.does3">On by default. Turn it off in Settings.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="filter.not">What it does not</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.not1">No cosmetic hiding (leftover empty ad boxes can remain).</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.not2">Network blocking only: no cosmetic filtering, no scriptlets, no path or pattern rules.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="filter.not3">Not the full uBlock Origin. On YouTube and heavy sites some ads get through.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="settings">Settings</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.settings">Settings → Privacy → Inco Filter. "Use uBlock Origin block lists" turns the uBlock Origin Lite lists on or off (on by default); the short built-in list stays active. Hosts to never block win over both lists. Extra hosts to block and hosts to never block are set there too. While a vault exists, these two lists are stored encrypted and apply once the vault is unlocked.</span><span class="mono">filter-hosts.txt, filter-ubol.txt</span></div></div>
+      </div>
+    </section>
 
-  <div class="card">
-    <strong style="color:#fff">What it does</strong>
-    <ul>
-      <li>Stops requests to known ad and tracker hostnames (and their subdomains).</li>
-      <li>Runs in the browser process. No extension API.</li>
-      <li>On by default. Turn it off in Settings.</li>
-    </ul>
-  </div>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="filter.credits">Credits and licenses</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.credits0">The uBlock Origin Lite lists are used under their authors' licenses:</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.credit1">uBlock Origin Lite and uBlock filters: Raymond Hill and contributors, GPLv3</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.credit2">EasyList and EasyPrivacy: the EasyList authors, GPLv3 or CC BY-SA 3.0</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.credit3">Peter Lowe's ad and tracking server list: Peter Lowe, may be combined and republished</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-desc" data-i18n="filter.credit4">Malicious URL Blocklist (URLhaus filter): malware-filter, CC0 and MIT; URLhaus data CC0</span></div></div>
+      </div>
+    </section>
 
-  <div class="card">
-    <strong style="color:#fff">What it does not</strong>
-    <ul>
-      <li>No cosmetic hiding (leftover empty ad boxes can remain).</li>
-      <li>No per-element rules, no community lists updating hourly.</li>
-      <li>Will not match uBlock on YouTube or heavy sites.</li>
-    </ul>
-  </div>
+    <p class="footer rise" data-i18n="filter.footer">The lists live in the app as filter-hosts.txt and filter-ubol.txt. filter-ubol.txt is made from a uBlock Origin Lite release with scripts/ubol-lists.py. Extensions are a separate, optional feature in Settings &gt; Extensions.</p>
+  </main>
 
-  <p class="muted">The list lives in the app as filter-hosts.txt. Growing it is how the filter gets better, not by installing someone else’s extension.</p>
-</main>
+<script>
+const T = {
+  "en": {
+    "newtab": "New tab",
+    "private": "Private",
+    "filter.title": "Inco Filter",
+    "filter.intro": "Inco's own request filter. It stops requests to ad, tracker and malware hosts before they leave the browser.",
+    "filter.does": "What it does",
+    "filter.does1": "Stops requests to known ad, tracker and malware hostnames (and their subdomains).",
+    "filter.does2": "Runs in the browser process, not as an extension.",
+    "filter.does3": "On by default. Turn it off in Settings.",
+    "filter.not": "What it does not",
+    "filter.not1": "No cosmetic hiding (leftover empty ad boxes can remain).",
+    "filter.not2": "Network blocking only: no cosmetic filtering, no scriptlets, no path or pattern rules.",
+    "filter.not3": "Not the full uBlock Origin. On YouTube and heavy sites some ads get through.",
+    "filter.footer": "The lists live in the app as filter-hosts.txt and filter-ubol.txt. filter-ubol.txt is made from a uBlock Origin Lite release with scripts/ubol-lists.py. Extensions are a separate, optional feature in Settings > Extensions.",
+    "filter.settings": "Settings → Privacy → Inco Filter. \"Use uBlock Origin block lists\" turns the uBlock Origin Lite lists on or off (on by default); the short built-in list stays active. Hosts to never block win over both lists. Extra hosts to block and hosts to never block are set there too. While a vault exists, these two lists are stored encrypted and apply once the vault is unlocked.",
+    "settings": "Settings",
+    "filter.does4": "Includes host block lists taken from uBlock Origin Lite (GPLv3): uBlock filters, EasyList, EasyPrivacy, Peter Lowe's list and malware lists.",
+    "filter.credits": "Credits and licenses",
+    "filter.credits0": "The uBlock Origin Lite lists are used under their authors' licenses:",
+    "filter.credit1": "uBlock Origin Lite and uBlock filters: Raymond Hill and contributors, GPLv3",
+    "filter.credit2": "EasyList and EasyPrivacy: the EasyList authors, GPLv3 or CC BY-SA 3.0",
+    "filter.credit3": "Peter Lowe's ad and tracking server list: Peter Lowe, may be combined and republished",
+    "filter.credit4": "Malicious URL Blocklist (URLhaus filter): malware-filter, CC0 and MIT; URLhaus data CC0"
+  },
+  "de": {
+    "newtab": "Neuer Tab",
+    "private": "Privat",
+    "filter.title": "Inco Filter",
+    "filter.intro": "Incos eigener Anfragefilter. Er stoppt Anfragen an Werbe-, Tracker- und Malware-Hosts, bevor sie den Browser verlassen.",
+    "filter.does": "Was er tut",
+    "filter.does1": "Stoppt Anfragen an bekannte Werbe-, Tracker- und Malware-Hosts (und Subdomains).",
+    "filter.does2": "Läuft im Browserprozess, nicht als Erweiterung.",
+    "filter.does3": "Standardmäßig an. In den Einstellungen abschaltbar.",
+    "filter.not": "Was er nicht tut",
+    "filter.not1": "Kein kosmetisches Verstecken (leere Werbeboxen können bleiben).",
+    "filter.not2": "Nur Netzwerk-Blockierung: kein kosmetisches Filtern, keine Scriptlets, keine Pfad- oder Musterregeln.",
+    "filter.not3": "Nicht das volle uBlock Origin. Auf YouTube und schweren Seiten kommt manche Werbung durch.",
+    "filter.footer": "Die Listen liegen in der App als filter-hosts.txt und filter-ubol.txt. filter-ubol.txt wird mit scripts/ubol-lists.py aus einer Version von uBlock Origin Lite erzeugt. Erweiterungen sind eine eigene, optionale Funktion unter Einstellungen > Erweiterungen.",
+    "filter.settings": "Einstellungen → Privatsphäre → Inco Filter. \"uBlock-Origin-Sperrlisten verwenden\" schaltet die Listen aus uBlock Origin Lite ein oder aus (standardmäßig an); die kurze eingebaute Liste bleibt aktiv. Nie zu blockierende Hosts haben Vorrang vor beiden Listen. Dort lassen sich auch zusätzliche und nie zu blockierende Hosts eintragen. Solange ein Tresor existiert, werden diese beiden Listen verschlüsselt gespeichert und gelten, sobald der Tresor entsperrt ist.",
+    "settings": "Einstellungen",
+    "filter.does4": "Enthält Host-Sperrlisten aus uBlock Origin Lite (GPLv3): uBlock-Filter, EasyList, EasyPrivacy, die Liste von Peter Lowe und Malware-Listen.",
+    "filter.credits": "Herkunft und Lizenzen",
+    "filter.credits0": "Die Listen aus uBlock Origin Lite werden unter den Lizenzen ihrer Autoren verwendet:",
+    "filter.credit1": "uBlock Origin Lite und uBlock-Filter: Raymond Hill und Mitwirkende, GPLv3",
+    "filter.credit2": "EasyList und EasyPrivacy: die EasyList-Autoren, GPLv3 oder CC BY-SA 3.0",
+    "filter.credit3": "Liste der Werbe- und Tracking-Server von Peter Lowe: Peter Lowe, darf kombiniert und weiterveröffentlicht werden",
+    "filter.credit4": "Malicious URL Blocklist (URLhaus-Filter): malware-filter, CC0 und MIT; URLhaus-Daten CC0"
+  },
+  "fr": {
+    "newtab": "Nouvel onglet",
+    "private": "Privé",
+    "filter.title": "Inco Filter",
+    "filter.intro": "Le filtre de requêtes propre à Inco. Il coupe les requêtes vers les hôtes de pub, de pistage et de malware avant qu’elles ne quittent le navigateur.",
+    "filter.does": "Ce qu’il fait",
+    "filter.does1": "Coupe les requêtes vers des hôtes pub, trackers et malware connus (et sous-domaines).",
+    "filter.does2": "Tourne dans le processus du navigateur, pas comme une extension.",
+    "filter.does3": "Activé par défaut. Désactivez-le dans les paramètres.",
+    "filter.not": "Ce qu’il ne fait pas",
+    "filter.not1": "Pas de masquage cosmétique (des blocs vides peuvent rester).",
+    "filter.not2": "Blocage réseau uniquement : pas de filtrage cosmétique, pas de scriptlets, pas de règles de chemin ou de motif.",
+    "filter.not3": "Ce n’est pas uBlock Origin complet. Sur YouTube et les sites lourds, certaines pubs passent.",
+    "filter.footer": "Les listes sont dans l’app (filter-hosts.txt et filter-ubol.txt). filter-ubol.txt est produit à partir d’une version d’uBlock Origin Lite avec scripts/ubol-lists.py. Les extensions sont une fonction à part, optionnelle, dans Paramètres > Extensions.",
+    "filter.settings": "Paramètres → Confidentialité → Inco Filter. « Utiliser les listes de blocage d’uBlock Origin » active ou désactive les listes d’uBlock Origin Lite (activé par défaut) ; la courte liste intégrée reste active. Les hôtes à ne jamais bloquer l’emportent sur les deux listes. Les hôtes à bloquer en plus et ceux à ne jamais bloquer se règlent aussi là. Tant qu’un coffre existe, ces deux listes sont chiffrées et s’appliquent une fois le coffre déverrouillé.",
+    "settings": "Paramètres",
+    "filter.does4": "Inclut des listes de blocage d’hôtes reprises d’uBlock Origin Lite (GPLv3) : filtres uBlock, EasyList, EasyPrivacy, la liste de Peter Lowe et des listes anti-malware.",
+    "filter.credits": "Crédits et licences",
+    "filter.credits0": "Les listes d’uBlock Origin Lite sont utilisées selon les licences de leurs auteurs :",
+    "filter.credit1": "uBlock Origin Lite et filtres uBlock : Raymond Hill et contributeurs, GPLv3",
+    "filter.credit2": "EasyList et EasyPrivacy : les auteurs d’EasyList, GPLv3 ou CC BY-SA 3.0",
+    "filter.credit3": "Liste des serveurs de pub et de pistage de Peter Lowe : Peter Lowe, peut être combinée et republiée",
+    "filter.credit4": "Malicious URL Blocklist (filtre URLhaus) : malware-filter, CC0 et MIT ; données URLhaus CC0"
+  },
+  "it": {
+    "newtab": "Nuova scheda",
+    "private": "Privato",
+    "filter.title": "Inco Filter",
+    "filter.intro": "Il filtro di richieste di Inco. Ferma le richieste verso host di pubblicità, tracciamento e malware prima che lascino il browser.",
+    "filter.does": "Cosa fa",
+    "filter.does1": "Ferma richieste a host ads, tracker e malware noti (e sottodomini).",
+    "filter.does2": "Gira nel processo del browser, non come estensione.",
+    "filter.does3": "Attivo di default. Spegnilo nelle Impostazioni.",
+    "filter.not": "Cosa non fa",
+    "filter.not1": "Niente nascondimento estetico (box vuoti possono restare).",
+    "filter.not2": "Solo blocco di rete: niente filtri estetici, niente scriptlet, niente regole su percorsi o modelli.",
+    "filter.not3": "Non è uBlock Origin completo. Su YouTube e siti pesanti qualche annuncio passa.",
+    "filter.footer": "Le liste sono nell’app come filter-hosts.txt e filter-ubol.txt. filter-ubol.txt è generato da una versione di uBlock Origin Lite con scripts/ubol-lists.py. Le estensioni sono una funzione a parte, opzionale, in Impostazioni > Estensioni.",
+    "filter.settings": "Impostazioni → Privacy → Inco Filter. \"Usa le liste di blocco di uBlock Origin\" attiva o disattiva le liste di uBlock Origin Lite (attivo di default); la breve lista integrata resta attiva. Gli host da non bloccare mai prevalgono su entrambe le liste. Lì si impostano anche gli host da bloccare in più e quelli da non bloccare mai. Finché esiste un vault, queste due liste sono salvate cifrate e valgono quando il vault è sbloccato.",
+    "settings": "Impostazioni",
+    "filter.does4": "Include liste di blocco host prese da uBlock Origin Lite (GPLv3): filtri uBlock, EasyList, EasyPrivacy, la lista di Peter Lowe e liste anti-malware.",
+    "filter.credits": "Crediti e licenze",
+    "filter.credits0": "Le liste di uBlock Origin Lite sono usate secondo le licenze dei loro autori:",
+    "filter.credit1": "uBlock Origin Lite e filtri uBlock: Raymond Hill e collaboratori, GPLv3",
+    "filter.credit2": "EasyList ed EasyPrivacy: gli autori di EasyList, GPLv3 o CC BY-SA 3.0",
+    "filter.credit3": "Lista dei server pubblicitari e di tracciamento di Peter Lowe: Peter Lowe, può essere combinata e ripubblicata",
+    "filter.credit4": "Malicious URL Blocklist (filtro URLhaus): malware-filter, CC0 e MIT; dati URLhaus CC0"
+  },
+  "zh": {
+    "newtab": "新标签页",
+    "private": "隐私",
+    "filter.title": "Inco Filter",
+    "filter.intro": "Inco 自带的请求过滤器。在请求离开浏览器之前拦截发往广告、跟踪和恶意软件主机的请求。",
+    "filter.does": "它做什么",
+    "filter.does1": "拦截已知广告、跟踪与恶意软件主机名（及其子域）的请求。",
+    "filter.does2": "在浏览器进程中运行，不是扩展程序。",
+    "filter.does3": "默认开启。可在设置中关闭。",
+    "filter.not": "它不做什么",
+    "filter.not1": "无外观级隐藏（空广告框可能仍在）。",
+    "filter.not2": "仅限网络层拦截：无外观过滤，无脚本注入，无路径或模式规则。",
+    "filter.not3": "不是完整的 uBlock Origin。在 YouTube 和重站点上仍有部分广告漏过。",
+    "filter.footer": "列表在应用内的 filter-hosts.txt 和 filter-ubol.txt。filter-ubol.txt 由 scripts/ubol-lists.py 从 uBlock Origin Lite 的发行版生成。扩展程序是另一项可选功能，位于 设置 > 扩展程序。",
+    "filter.settings": "设置 → 隐私 → Inco Filter。“使用 uBlock Origin 拦截列表”可开关 uBlock Origin Lite 的列表（默认开启）；内置短列表始终生效。永不拦截的主机优先于两个列表。也可在那里添加额外拦截的主机和永不拦截的主机。存在保险库时，这两个列表会加密保存，并在保险库解锁后生效。",
+    "settings": "设置",
+    "filter.does4": "包含取自 uBlock Origin Lite（GPLv3）的主机拦截列表：uBlock 过滤规则、EasyList、EasyPrivacy、Peter Lowe 列表及恶意软件列表。",
+    "filter.credits": "致谢与许可",
+    "filter.credits0": "uBlock Origin Lite 的列表按其作者的许可使用：",
+    "filter.credit1": "uBlock Origin Lite 与 uBlock 过滤规则：Raymond Hill 及贡献者，GPLv3",
+    "filter.credit2": "EasyList 与 EasyPrivacy：EasyList 作者，GPLv3 或 CC BY-SA 3.0",
+    "filter.credit3": "Peter Lowe 的广告与跟踪服务器列表：Peter Lowe，允许合并与再发布",
+    "filter.credit4": "Malicious URL Blocklist（URLhaus 过滤器）：malware-filter，CC0 与 MIT；URLhaus 数据为 CC0"
+  }
+};
+function applyLang(lang) {
+  const code = T[lang] ? lang : "en";
+  const t = T[code];
+  document.documentElement.lang = code;
+  document.querySelectorAll("[data-i18n]").forEach(el => {
+    const k = el.getAttribute("data-i18n");
+    if (t[k]) el.textContent = t[k];
+  });
+  document.title = t["filter.title"] || document.title;
+}
+window.incoApplyLang = applyLang;
+</script>
 </body>
 </html>

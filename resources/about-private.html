@@ -3,76 +3,121 @@
 <head>
 <meta charset="utf-8">
 <title>What private means</title>
+<link rel="stylesheet" href="inco.css">
 <style>
-  html, body { margin: 0; background: #0e0e0e; color: #ddd; font-family: system-ui, sans-serif; }
-  main { max-width: 640px; margin: 40px auto; padding: 0 20px 72px; line-height: 1.6; }
-  h1 { font-size: 28px; font-weight: 600; color: #fff; margin: 0 0 12px; }
-  h2 { font-size: 16px; color: #fff; margin: 28px 0 8px; }
-  p, li { color: #b7b7b7; }
-  a { color: #e8e8e8; }
-  .card { background: #161616; border-radius: 14px; padding: 16px 18px; margin: 16px 0; }
-  .muted { color: #777; }
+  .row .chip { flex: 0 0 auto; }
+  .cmp { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .cmp th, .cmp td { padding: 10px 8px; text-align: left; border-bottom: 1px solid rgba(127,127,127,.18); }
+  .cmp th { font-size: 12px; letter-spacing: .06em; text-transform: uppercase; opacity: .7; font-weight: 600; }
+  .cmp td:not(:first-child), .cmp th:not(:first-child) { text-align: center; width: 18%; }
+  .cmp tr:last-child td { border-bottom: none; }
+  .cmp .bad { opacity: .6; }
+  .cmp-note { font-size: 12px; opacity: .6; margin: 10px 8px 0; }
 </style>
 </head>
 <body>
-<main>
-  <p><a href="qrc:/newtab.html">← <span data-i18n="newtab">New tab</span></a></p>
-  <h1 data-i18n="about.title">What private means</h1>
-  <p data-i18n="about.intro">Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.</p>
+  <div class="ocni"><img src="ocni.png" alt=""></div>
+  <div class="quote" id="quote"></div>
 
-  <div class="card">
-    <strong style="color:#fff" data-i18n="about.normal">Every normal tab</strong>
-    <ul>
-      <li data-i18n="about.nohistory">No browsing history and no session restore.</li>
-      <li data-i18n="about.cookies">Cookies and cache are cleared when Inco quits, unless you keep logins.</li>
-      <li data-i18n="about.bookmarks">Bookmarks stay off until you enable them.</li>
-      <li data-i18n="about.passwords">Passwords live in an AES-256-GCM vault with a master password, if you want that.</li>
-      <li data-i18n="about.lan">Pages cannot talk to localhost or your LAN (blocks typical browser port scans).</li>
-      <li><a href="qrc:/about-filter.html">Inco Filter</a> <span data-i18n="about.filter">blocks a built-in list of ad/tracker hosts.</span></li>
-    </ul>
-  </div>
+  <main class="page">
+    <header class="page-head rise">
+      <nav class="nav"><a class="btn" href="qrc:/newtab.html">← <span data-i18n="newtab">New tab</span></a><a class="btn" href="qrc:/about-filter.html">Inco Filter</a></nav>
+      <h1 class="page-title" data-i18n="about.title">What private means</h1>
+      <p class="page-subtitle" data-i18n="about.intro">Inco is private by default on this computer. Onionize is a separate window that routes through Tor. This is not Tor Browser.</p>
+    </header>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="about.normal">Every normal tab</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.nohistory">No browsing history and no session restore.</span></div><span class="chip ok" data-i18n="about.state.always">Always</span></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.cookies">Cookies and cache are cleared when Inco quits, unless you keep logins.</span></div><span class="chip ok" data-i18n="about.state.on">On by default</span></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.bookmarks">Bookmarks stay off until you enable them.</span></div><span class="chip muted" data-i18n="about.state.off">Off by default</span></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.passwords">Passwords live in an AES-256-GCM vault with a master password, if you want that.</span></div><span class="chip muted" data-i18n="about.state.optional">Optional</span></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.ext">Chrome extensions (Manifest V3) can be installed from a folder or a .zip/.crx file in Settings &gt; Extensions.</span></div><span class="chip muted" data-i18n="about.state.off">Off by default</span></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.lan">Pages cannot reach localhost, link-local or multicast addresses (this stops typical port scans of your own computer). Other LAN addresses are not blocked.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title"><a class="link" href="qrc:/about-filter.html">Inco Filter</a> <span data-i18n="about.filter">blocks a built-in list of ad/tracker hosts.</span></span></div><span class="chip ok" data-i18n="about.state.on">On by default</span></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="about.ext.title">Extensions</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.ext1">Optional and off by default. Install from an unpacked folder or a .zip/.crx file, then switch each one on in Settings &gt; Extensions.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.ext2">Only Manifest V3 extensions load, and only part of the Chrome extension API exists. Some extensions, for example uBlock Origin Lite, load but do not work fully.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.ext3">Extensions never load in Onionize windows.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.ext4">With extensions on, normal windows use a profile on disk. Extension files and their data are stored there unencrypted.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="about.disk">On disk</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.memory">Without kept logins and extensions, cookies, site storage, visited links and site permissions of normal tabs stay in memory and are gone when Inco quits.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.sealed">The vault key comes from your master password through Argon2id. While a vault exists, bookmarks, filter lists, search engine and download folder are encrypted with it. The vault locks itself when idle, on sleep and on screen lock.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.cookiesdisk">Kept logins and extensions need a profile on disk. Qt WebEngine stores those cookies and that site data unencrypted on Linux.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.luks">For full protection of everything on disk (profile, downloads, swap), use full-disk encryption: LUKS, the “Encrypt my data” option in the Fedora installer.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.paths">Data lives in ~/.config/Inco/IncoBrowser/, settings in ~/.config/Inco/IncoBrowser.conf. Onionize keeps Tor state in /run/user/&lt;uid&gt;/inco-browser, gone at logout.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="cmp.title">Inco vs Chrome vs Firefox</h2>
+      <table class="cmp">
+        <thead><tr><th></th><th>Chrome</th><th>Firefox</th><th>Inco</th></tr></thead>
+        <tbody>
+          <tr><td data-i18n="cmp.history">Saves your browsing history</td><td class="bad" data-i18n="v.yes">Yes</td><td class="bad" data-i18n="v.yes">Yes</td><td><span class="chip ok" data-i18n="v.no">No</span></td></tr>
+          <tr><td data-i18n="cmp.cookies">Keeps cookies after you close it</td><td class="bad" data-i18n="v.yes">Yes</td><td class="bad" data-i18n="v.yes">Yes</td><td><span class="chip ok" data-i18n="v.no">No</span></td></tr>
+          <tr><td data-i18n="cmp.trackers">Blocks trackers out of the box</td><td class="bad" data-i18n="v.no">No</td><td class="" data-i18n="v.yes">Yes</td><td><span class="chip ok" data-i18n="v.yes">Yes</span></td></tr>
+          <tr><td data-i18n="cmp.search">Default search engine</td><td class="bad" data-i18n="v.google">Google</td><td class="bad" data-i18n="v.google">Google</td><td><span class="chip ok" data-i18n="v.ddg">DuckDuckGo</span></td></tr>
+          <tr><td data-i18n="cmp.telemetry">Sends usage data by default</td><td class="bad" data-i18n="v.yes">Yes</td><td class="bad" data-i18n="v.yes">Yes</td><td><span class="chip ok" data-i18n="v.no">No</span></td></tr>
+          <tr><td data-i18n="cmp.tor">Built-in Tor window</td><td class="bad" data-i18n="v.no">No</td><td class="bad" data-i18n="v.no">No</td><td><span class="chip ok" data-i18n="v.yes">Yes</span></td></tr>
+          <tr><td data-i18n="cmp.ext">Runs Chrome extensions</td><td class="" data-i18n="v.yes">Yes</td><td class="" data-i18n="v.ffext">Own add-on format</td><td><span class="chip muted" data-i18n="v.extpartial">Optional, partial</span></td></tr>
+        </tbody>
+      </table>
+      <p class="cmp-note" data-i18n="cmp.note">Defaults of a fresh install. Chrome and Firefox can change most of these in their settings.</p>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="onionize">Onionize</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion1">Opens a new process that starts bundled Tor and uses SOCKS.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion2">That window can hide your IP from the site. Confirm on check.torproject.org.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion3">It does not use your vault or bookmarks.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion4">It does not make you look like every other Tor user. Fingerprint still exists.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion5">Turning Onionize off closes that window.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.onion6">The route panel reads guard, middle and exit relays from Tor’s local control port. Anything it cannot read is shown as unknown.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="about.searches">Searches</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.search1">HTTPS hides the query from a normal firewall. They still see which search engine you used.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.search2">A network that intercepts HTTPS can still read the query.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.search3">Your search engine sees the words. On a normal tab it can also see your IP.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.search4">On a working Onionize window, the search engine sees a Tor exit instead of your IP.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.search5">Settings &gt; Search picks the engine: DuckDuckGo (default), Startpage, or a custom address you already had. The new-tab box, the address bar and Onionize windows all use it.</span></div></div>
+      </div>
+    </section>
+    <section class="card rise">
+      <h2 class="section-title" data-i18n="about.not">Not this product</h2>
+      <div class="rows">
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.notvpn">Not a VPN.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.nottor">Not Tor Browser.</span></div></div>
+          <div class="row"><div class="row-text"><span class="row-title" data-i18n="about.notad">Not an ad blocker.</span></div></div>
+      </div>
+    </section>
 
-  <div class="card">
-    <strong style="color:#fff" data-i18n="onionize">Onionize</strong>
-    <ul>
-      <li data-i18n="about.onion1">Opens a new process that starts bundled Tor and uses SOCKS.</li>
-      <li data-i18n="about.onion2">That window can hide your IP from the site. Confirm on check.torproject.org.</li>
-      <li data-i18n="about.onion3">It does not use your vault or bookmarks.</li>
-      <li data-i18n="about.onion4">It does not make you look like every other Tor user. Fingerprint still exists.</li>
-      <li data-i18n="about.onion5">Turning Onionize off closes that window.</li>
-    </ul>
-  </div>
+    <p class="footer rise" data-i18n="about.footer">Private = no diary on disk. Onionize = Tor path, if the check page is green.</p>
+    <p class="footer rise">&copy; 2026 TheMadForester</p>
+  </main>
 
-  <div class="card">
-    <strong style="color:#fff" data-i18n="about.searches">Searches</strong>
-    <ul>
-      <li data-i18n="about.search1">HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.</li>
-      <li data-i18n="about.search2">A network that intercepts HTTPS can still read the query.</li>
-      <li data-i18n="about.search3">DuckDuckGo sees the words. On a normal tab it can also see your IP.</li>
-      <li data-i18n="about.search4">On a working Onionize window, DDG sees a Tor exit instead of your IP.</li>
-    </ul>
-  </div>
-
-  <h2 data-i18n="about.not">Not this product</h2>
-  <ul>
-    <li data-i18n="about.notvpn">Not a VPN.</li>
-    <li data-i18n="about.nottor">Not Tor Browser.</li>
-    <li data-i18n="about.notad">Not an ad blocker.</li>
-  </ul>
-  <p class="muted" data-i18n="about.footer">Private = no diary on disk. Onionize = Tor path, if the check page is green.</p>
-</main>
 <script>
 const T = {
-  en: {
+  "en": {
     "newtab": "New tab",
     "about.title": "What private means",
-    "about.intro": "Inco is private by default on this computer. Anonymity is a separate window that uses Tor. This is not Tor Browser.",
+    "about.intro": "Inco is private by default on this computer. Onionize is a separate window that routes through Tor. This is not Tor Browser.",
     "about.normal": "Every normal tab",
     "about.nohistory": "No browsing history and no session restore.",
     "about.cookies": "Cookies and cache are cleared when Inco quits, unless you keep logins.",
     "about.bookmarks": "Bookmarks stay off until you enable them.",
     "about.passwords": "Passwords live in an AES-256-GCM vault with a master password, if you want that.",
-    "about.lan": "Pages cannot talk to localhost or your LAN (blocks typical browser port scans).",
+    "about.lan": "Pages cannot reach localhost, link-local or multicast addresses (this stops typical port scans of your own computer). Other LAN addresses are not blocked.",
     "about.filter": "blocks a built-in list of ad/tracker hosts.",
     "onionize": "Onionize",
     "about.onion1": "Opens a new process that starts bundled Tor and uses SOCKS.",
@@ -81,26 +126,59 @@ const T = {
     "about.onion4": "It does not make you look like every other Tor user. Fingerprint still exists.",
     "about.onion5": "Turning Onionize off closes that window.",
     "about.searches": "Searches",
-    "about.search1": "HTTPS hides the query from a normal firewall. They still see that you used DuckDuckGo.",
+    "about.search1": "HTTPS hides the query from a normal firewall. They still see which search engine you used.",
     "about.search2": "A network that intercepts HTTPS can still read the query.",
-    "about.search3": "DuckDuckGo sees the words. On a normal tab it can also see your IP.",
-    "about.search4": "On a working Onionize window, DDG sees a Tor exit instead of your IP.",
+    "about.search3": "Your search engine sees the words. On a normal tab it can also see your IP.",
+    "about.search4": "On a working Onionize window, the search engine sees a Tor exit instead of your IP.",
+    "about.search5": "Settings > Search picks the engine: DuckDuckGo (default), Startpage, or a custom address you already had. The new-tab box, the address bar and Onionize windows all use it.",
     "about.not": "Not this product",
     "about.notvpn": "Not a VPN.",
     "about.nottor": "Not Tor Browser.",
     "about.notad": "Not an ad blocker.",
-    "about.footer": "Private = no diary on disk. Onionize = Tor path, if the check page is green."
+    "about.footer": "Private = no diary on disk. Onionize = Tor path, if the check page is green.",
+    "about.onion6": "The route panel reads guard, middle and exit relays from Tor’s local control port. Anything it cannot read is shown as unknown.",
+    "about.state.on": "On by default",
+    "about.state.always": "Always",
+    "about.state.off": "Off by default",
+    "cmp.title": "Inco vs Chrome vs Firefox",
+    "cmp.history": "Saves your browsing history",
+    "cmp.cookies": "Keeps cookies after you close it",
+    "cmp.trackers": "Blocks trackers out of the box",
+    "cmp.search": "Default search engine",
+    "cmp.telemetry": "Sends usage data by default",
+    "cmp.tor": "Built-in Tor window",
+    "v.yes": "Yes",
+    "v.no": "No",
+    "v.google": "Google",
+    "v.ddg": "DuckDuckGo",
+    "about.ext": "Chrome extensions (Manifest V3) can be installed from a folder or a .zip/.crx file in Settings > Extensions.",
+    "about.ext.title": "Extensions",
+    "about.ext1": "Optional and off by default. Install from an unpacked folder or a .zip/.crx file, then switch each one on in Settings > Extensions.",
+    "about.ext2": "Only Manifest V3 extensions load, and only part of the Chrome extension API exists. Some extensions, for example uBlock Origin Lite, load but do not work fully.",
+    "about.ext3": "Extensions never load in Onionize windows.",
+    "about.ext4": "With extensions on, normal windows use a profile on disk. Extension files and their data are stored there unencrypted.",
+    "cmp.ext": "Runs Chrome extensions",
+    "v.ffext": "Own add-on format",
+    "v.extpartial": "Optional, partial",
+    "cmp.note": "Defaults of a fresh install. Chrome and Firefox can change most of these in their settings.",
+    "about.state.optional": "Optional",
+    "about.disk": "On disk",
+    "about.memory": "Without kept logins and extensions, cookies, site storage, visited links and site permissions of normal tabs stay in memory and are gone when Inco quits.",
+    "about.sealed": "The vault key comes from your master password through Argon2id. While a vault exists, bookmarks, filter lists, search engine and download folder are encrypted with it. The vault locks itself when idle, on sleep and on screen lock.",
+    "about.cookiesdisk": "Kept logins and extensions need a profile on disk. Qt WebEngine stores those cookies and that site data unencrypted on Linux.",
+    "about.luks": "For full protection of everything on disk (profile, downloads, swap), use full-disk encryption: LUKS, the “Encrypt my data” option in the Fedora installer.",
+    "about.paths": "Data lives in ~/.config/Inco/IncoBrowser/, settings in ~/.config/Inco/IncoBrowser.conf. Onionize keeps Tor state in /run/user/<uid>/inco-browser, gone at logout."
   },
-  de: {
+  "de": {
     "newtab": "Neuer Tab",
     "about.title": "Was privat bedeutet",
-    "about.intro": "Inco ist auf diesem Computer standardmäßig privat. Anonymität ist ein separates Fenster mit Tor. Das ist kein Tor Browser.",
+    "about.intro": "Inco ist auf diesem Computer standardmäßig privat. Onionize ist ein separates Fenster, das über Tor läuft. Das ist kein Tor Browser.",
     "about.normal": "Jeder normale Tab",
     "about.nohistory": "Keine Verlaufshistorie und keine Sitzungswiederherstellung.",
     "about.cookies": "Cookies und Cache werden beim Beenden gelöscht, außer du behältst Logins.",
     "about.bookmarks": "Lesezeichen bleiben aus, bis du sie aktivierst.",
     "about.passwords": "Passwörter liegen in einem AES-256-GCM-Tresor mit Master-Passwort, falls gewünscht.",
-    "about.lan": "Seiten können nicht mit localhost oder deinem LAN sprechen.",
+    "about.lan": "Seiten erreichen weder localhost noch Link-Local- oder Multicast-Adressen (das stoppt typische Port-Scans deines eigenen Computers). Andere LAN-Adressen werden nicht blockiert.",
     "about.filter": "blockiert eine eingebaute Liste von Ad-/Tracker-Hosts.",
     "onionize": "Onionize",
     "about.onion1": "Öffnet einen neuen Prozess, der gebündeltes Tor startet und SOCKS nutzt.",
@@ -109,25 +187,262 @@ const T = {
     "about.onion4": "Es lässt dich nicht wie jeden anderen Tor-Nutzer aussehen. Fingerprint bleibt.",
     "about.onion5": "Onionize ausschalten schließt dieses Fenster.",
     "about.searches": "Suchen",
-    "about.search1": "HTTPS versteckt die Anfrage vor einer normalen Firewall. Sie sehen trotzdem, dass du DuckDuckGo nutzt.",
+    "about.search1": "HTTPS versteckt die Anfrage vor einer normalen Firewall. Sie sehen trotzdem, welche Suchmaschine du nutzt.",
     "about.search2": "Ein Netzwerk das HTTPS abfängt kann die Anfrage trotzdem lesen.",
-    "about.search3": "DuckDuckGo sieht die Wörter. Auf einem normalen Tab auch deine IP.",
-    "about.search4": "Auf einem funktionierenden Onionize-Fenster sieht DDG einen Tor-Exit statt deiner IP.",
+    "about.search3": "Deine Suchmaschine sieht die Wörter. Auf einem normalen Tab auch deine IP.",
+    "about.search4": "Auf einem funktionierenden Onionize-Fenster sieht die Suchmaschine einen Tor-Exit statt deiner IP.",
+    "about.search5": "Unter Einstellungen > Suche wählst du die Suchmaschine: DuckDuckGo (Standard), Startpage oder eine eigene Adresse, die du schon hattest. Das Suchfeld im neuen Tab, die Adressleiste und Onionize-Fenster nutzen sie alle.",
     "about.not": "Nicht dieses Produkt",
     "about.notvpn": "Kein VPN.",
     "about.nottor": "Kein Tor Browser.",
     "about.notad": "Kein Ad-Blocker.",
-    "about.footer": "Privat = kein Tagebuch auf der Platte. Onionize = Tor-Pfad, wenn die Check-Seite grün ist."
+    "about.footer": "Privat = kein Tagebuch auf der Platte. Onionize = Tor-Pfad, wenn die Check-Seite grün ist.",
+    "about.onion6": "Das Routen-Panel liest Guard-, Middle- und Exit-Relay vom lokalen Control-Port von Tor. Was es nicht lesen kann, wird als unbekannt angezeigt.",
+    "about.state.on": "Standardmäßig an",
+    "about.state.always": "Immer",
+    "about.state.off": "Standardmäßig aus",
+    "cmp.title": "Inco vs. Chrome vs. Firefox",
+    "cmp.history": "Speichert deinen Verlauf",
+    "cmp.cookies": "Behält Cookies nach dem Schließen",
+    "cmp.trackers": "Blockiert Tracker ab Werk",
+    "cmp.search": "Standard-Suchmaschine",
+    "cmp.telemetry": "Sendet standardmäßig Nutzungsdaten",
+    "cmp.tor": "Eingebautes Tor-Fenster",
+    "v.yes": "Ja",
+    "v.no": "Nein",
+    "v.google": "Google",
+    "v.ddg": "DuckDuckGo",
+    "about.ext": "Chrome-Erweiterungen (Manifest V3) lassen sich unter Einstellungen > Erweiterungen aus einem Ordner oder einer .zip/.crx-Datei installieren.",
+    "about.ext.title": "Erweiterungen",
+    "about.ext1": "Optional und standardmäßig aus. Installation aus einem entpackten Ordner oder einer .zip/.crx-Datei, danach jede einzeln unter Einstellungen > Erweiterungen einschalten.",
+    "about.ext2": "Nur Manifest-V3-Erweiterungen werden geladen, und nur ein Teil der Chrome-Erweiterungs-API ist vorhanden. Manche Erweiterungen, etwa uBlock Origin Lite, laden, funktionieren aber nicht vollständig.",
+    "about.ext3": "In Onionize-Fenstern werden Erweiterungen nie geladen.",
+    "about.ext4": "Mit eingeschalteten Erweiterungen nutzen normale Fenster ein Profil auf der Festplatte. Erweiterungsdateien und ihre Daten liegen dort unverschlüsselt.",
+    "cmp.ext": "Führt Chrome-Erweiterungen aus",
+    "v.ffext": "Eigenes Add-on-Format",
+    "v.extpartial": "Optional, teilweise",
+    "cmp.note": "Standardwerte einer frischen Installation. Chrome und Firefox lassen das meiste in den Einstellungen ändern.",
+    "about.state.optional": "Optional",
+    "about.disk": "Auf der Festplatte",
+    "about.memory": "Ohne behaltene Logins und Erweiterungen bleiben Cookies, Website-Speicher, besuchte Links und Website-Berechtigungen normaler Tabs im Arbeitsspeicher und sind beim Beenden weg.",
+    "about.sealed": "Der Tresorschlüssel entsteht per Argon2id aus deinem Master-Passwort. Solange ein Tresor existiert, sind Lesezeichen, Filterlisten, Suchmaschine und Download-Ordner damit verschlüsselt. Der Tresor sperrt sich bei Inaktivität, im Ruhezustand und bei Bildschirmsperre.",
+    "about.cookiesdisk": "Behaltene Logins und Erweiterungen brauchen ein Profil auf der Festplatte. Qt WebEngine speichert diese Cookies und Website-Daten unter Linux unverschlüsselt.",
+    "about.luks": "Vollen Schutz für alles auf der Festplatte (Profil, Downloads, Swap) bietet Festplattenverschlüsselung: LUKS, im Fedora-Installer die Option „Meine Daten verschlüsseln“.",
+    "about.paths": "Daten liegen in ~/.config/Inco/IncoBrowser/, Einstellungen in ~/.config/Inco/IncoBrowser.conf. Onionize hält den Tor-Zustand in /run/user/<uid>/inco-browser, beim Abmelden ist er weg."
+  },
+  "fr": {
+    "newtab": "Nouvel onglet",
+    "about.title": "Ce que signifie privé",
+    "about.intro": "Inco est privé par défaut sur cet ordinateur. Onionize est une fenêtre séparée qui passe par Tor. Ce n’est pas Tor Browser.",
+    "about.normal": "Chaque onglet normal",
+    "about.nohistory": "Pas d’historique de navigation ni de restauration de session.",
+    "about.cookies": "Cookies et cache effacés à la fermeture, sauf si vous gardez les connexions.",
+    "about.bookmarks": "Les signets restent désactivés jusqu’à ce que vous les activiez.",
+    "about.passwords": "Les mots de passe sont dans un coffre AES-256-GCM avec mot de passe maître, si vous le souhaitez.",
+    "about.lan": "Les pages ne peuvent pas joindre localhost ni les adresses link-local ou multicast (cela bloque les scans de ports typiques de votre ordinateur). Les autres adresses du LAN ne sont pas bloquées.",
+    "about.filter": "bloque une liste intégrée d’hôtes pub/trackers.",
+    "onionize": "Onionize",
+    "about.onion1": "Ouvre un nouveau processus qui démarre Tor intégré et utilise SOCKS.",
+    "about.onion2": "Cette fenêtre peut cacher votre IP au site. Vérifiez sur check.torproject.org.",
+    "about.onion3": "Elle n’utilise ni coffre ni signets.",
+    "about.onion4": "Elle ne vous fait pas ressembler à tout autre utilisateur Tor. L’empreinte reste.",
+    "about.onion5": "Désactiver Onionize ferme cette fenêtre.",
+    "about.searches": "Recherches",
+    "about.search1": "HTTPS cache la requête à un pare-feu normal. Ils voient quand même quel moteur de recherche vous utilisez.",
+    "about.search2": "Un réseau qui intercepte HTTPS peut encore lire la requête.",
+    "about.search3": "Votre moteur de recherche voit les mots. Sur un onglet normal, aussi votre IP.",
+    "about.search4": "Sur une fenêtre Onionize qui marche, le moteur de recherche voit une sortie Tor au lieu de votre IP.",
+    "about.search5": "Paramètres > Recherche permet de choisir le moteur : DuckDuckGo (par défaut), Startpage, ou une adresse personnalisée que vous aviez déjà. Le champ du nouvel onglet, la barre d’adresse et les fenêtres Onionize l’utilisent tous.",
+    "about.not": "Pas ce produit",
+    "about.notvpn": "Pas un VPN.",
+    "about.nottor": "Pas Tor Browser.",
+    "about.notad": "Pas un bloqueur de pubs.",
+    "about.footer": "Privé = pas de journal sur le disque. Onionize = chemin Tor, si la page de contrôle est verte.",
+    "about.onion6": "Le panneau de route lit les relais de garde, intermédiaire et de sortie via le port de contrôle local de Tor. Ce qu’il ne peut pas lire est affiché comme inconnu.",
+    "about.state.on": "Activé par défaut",
+    "about.state.always": "Toujours",
+    "about.state.off": "Désactivé par défaut",
+    "cmp.title": "Inco vs Chrome vs Firefox",
+    "cmp.history": "Enregistre votre historique",
+    "cmp.cookies": "Garde les cookies après fermeture",
+    "cmp.trackers": "Bloque les traqueurs d’office",
+    "cmp.search": "Moteur de recherche par défaut",
+    "cmp.telemetry": "Envoie des données d’usage par défaut",
+    "cmp.tor": "Fenêtre Tor intégrée",
+    "v.yes": "Oui",
+    "v.no": "Non",
+    "v.google": "Google",
+    "v.ddg": "DuckDuckGo",
+    "about.ext": "Les extensions Chrome (Manifest V3) s’installent depuis un dossier ou un fichier .zip/.crx dans Paramètres > Extensions.",
+    "about.ext.title": "Extensions",
+    "about.ext1": "Optionnelles et désactivées par défaut. Installation depuis un dossier décompressé ou un fichier .zip/.crx, puis activation de chacune dans Paramètres > Extensions.",
+    "about.ext2": "Seules les extensions Manifest V3 se chargent, et seule une partie de l’API d’extensions de Chrome existe. Certaines extensions, comme uBlock Origin Lite, se chargent sans fonctionner complètement.",
+    "about.ext3": "Les extensions ne se chargent jamais dans les fenêtres Onionize.",
+    "about.ext4": "Avec les extensions activées, les fenêtres normales utilisent un profil sur disque. Les fichiers des extensions et leurs données y sont stockés sans chiffrement.",
+    "cmp.ext": "Exécute les extensions Chrome",
+    "v.ffext": "Son propre format de modules",
+    "v.extpartial": "Optionnel, partiel",
+    "cmp.note": "Réglages par défaut d’une nouvelle installation. Chrome et Firefox permettent de changer la plupart dans leurs paramètres.",
+    "about.state.optional": "Optionnel",
+    "about.disk": "Sur le disque",
+    "about.memory": "Sans connexions conservées ni extensions, cookies, stockage des sites, liens visités et autorisations des onglets normaux restent en mémoire et disparaissent quand Inco se ferme.",
+    "about.sealed": "La clé du coffre vient de votre mot de passe maître via Argon2id. Tant qu’un coffre existe, signets, listes de filtres, moteur de recherche et dossier de téléchargement sont chiffrés avec elle. Le coffre se verrouille après inactivité, en veille et au verrouillage de l’écran.",
+    "about.cookiesdisk": "Les connexions conservées et les extensions ont besoin d’un profil sur disque. Sous Linux, Qt WebEngine y stocke ces cookies et ces données de sites sans chiffrement.",
+    "about.luks": "Pour protéger tout ce qui est sur le disque (profil, téléchargements, swap), utilisez le chiffrement complet du disque : LUKS, l’option « Chiffrer mes données » de l’installateur Fedora.",
+    "about.paths": "Les données sont dans ~/.config/Inco/IncoBrowser/, les réglages dans ~/.config/Inco/IncoBrowser.conf. Onionize garde l’état de Tor dans /run/user/<uid>/inco-browser, effacé à la déconnexion."
+  },
+  "it": {
+    "newtab": "Nuova scheda",
+    "about.title": "Cosa significa privato",
+    "about.intro": "Inco è privato di default su questo computer. Onionize è una finestra separata che passa per Tor. Non è Tor Browser.",
+    "about.normal": "Ogni scheda normale",
+    "about.nohistory": "Niente cronologia e niente ripristino sessione.",
+    "about.cookies": "Cookie e cache cancellati alla chiusura, salvo se tieni i login.",
+    "about.bookmarks": "I segnalibri restano spenti finché non li attivi.",
+    "about.passwords": "Le password stanno in un vault AES-256-GCM con password master, se vuoi.",
+    "about.lan": "Le pagine non possono raggiungere localhost né indirizzi link-local o multicast (questo blocca le tipiche scansioni delle porte del tuo computer). Gli altri indirizzi della LAN non sono bloccati.",
+    "about.filter": "blocca un elenco interno di host ads/tracker.",
+    "onionize": "Onionize",
+    "about.onion1": "Apre un nuovo processo che avvia Tor incluso e usa SOCKS.",
+    "about.onion2": "Quella finestra può nascondere il tuo IP al sito. Controlla su check.torproject.org.",
+    "about.onion3": "Non usa vault né segnalibri.",
+    "about.onion4": "Non ti fa sembrare ogni altro utente Tor. L’impronta resta.",
+    "about.onion5": "Spegnere Onionize chiude quella finestra.",
+    "about.searches": "Ricerche",
+    "about.search1": "HTTPS nasconde la query a un firewall normale. Vedono comunque quale motore di ricerca usi.",
+    "about.search2": "Una rete che intercetta HTTPS può ancora leggere la query.",
+    "about.search3": "Il tuo motore di ricerca vede le parole. Su una scheda normale anche il tuo IP.",
+    "about.search4": "Su una finestra Onionize funzionante, il motore di ricerca vede un exit Tor invece del tuo IP.",
+    "about.search5": "In Impostazioni > Ricerca scegli il motore: DuckDuckGo (predefinito), Startpage o un indirizzo personalizzato che avevi già. Il campo della nuova scheda, la barra degli indirizzi e le finestre Onionize lo usano tutti.",
+    "about.not": "Non questo prodotto",
+    "about.notvpn": "Non è una VPN.",
+    "about.nottor": "Non è Tor Browser.",
+    "about.notad": "Non è un ad blocker.",
+    "about.footer": "Privato = niente diario su disco. Onionize = percorso Tor, se la pagina di check è verde.",
+    "about.onion6": "Il pannello del percorso legge i relay guard, intermedio e di uscita dalla porta di controllo locale di Tor. Ciò che non può leggere viene mostrato come sconosciuto.",
+    "about.state.on": "Attivo di default",
+    "about.state.always": "Sempre",
+    "about.state.off": "Spento di default",
+    "cmp.title": "Inco vs Chrome vs Firefox",
+    "cmp.history": "Salva la cronologia",
+    "cmp.cookies": "Tiene i cookie dopo la chiusura",
+    "cmp.trackers": "Blocca i tracker da subito",
+    "cmp.search": "Motore di ricerca predefinito",
+    "cmp.telemetry": "Invia dati d’uso di default",
+    "cmp.tor": "Finestra Tor integrata",
+    "v.yes": "Sì",
+    "v.no": "No",
+    "v.google": "Google",
+    "v.ddg": "DuckDuckGo",
+    "about.ext": "Le estensioni Chrome (Manifest V3) si installano da una cartella o da un file .zip/.crx in Impostazioni > Estensioni.",
+    "about.ext.title": "Estensioni",
+    "about.ext1": "Opzionali e disattivate di default. Si installano da una cartella non compressa o da un file .zip/.crx, poi si attivano una per una in Impostazioni > Estensioni.",
+    "about.ext2": "Si caricano solo estensioni Manifest V3 ed esiste solo una parte dell’API delle estensioni di Chrome. Alcune estensioni, per esempio uBlock Origin Lite, si caricano ma non funzionano del tutto.",
+    "about.ext3": "Le estensioni non vengono mai caricate nelle finestre Onionize.",
+    "about.ext4": "Con le estensioni attive, le finestre normali usano un profilo su disco. I file delle estensioni e i loro dati vi sono salvati senza cifratura.",
+    "cmp.ext": "Esegue estensioni Chrome",
+    "v.ffext": "Formato di componenti proprio",
+    "v.extpartial": "Opzionale, parziale",
+    "cmp.note": "Impostazioni di una nuova installazione. In Chrome e Firefox quasi tutto si può cambiare nelle impostazioni.",
+    "about.state.optional": "Opzionale",
+    "about.disk": "Su disco",
+    "about.memory": "Senza accessi mantenuti ed estensioni, cookie, archiviazione dei siti, link visitati e permessi dei siti delle schede normali restano in memoria e spariscono quando Inco si chiude.",
+    "about.sealed": "La chiave del vault deriva dalla password master tramite Argon2id. Finché esiste un vault, segnalibri, liste del filtro, motore di ricerca e cartella dei download sono cifrati con essa. Il vault si blocca dopo inattività, in sospensione e al blocco dello schermo.",
+    "about.cookiesdisk": "Accessi mantenuti ed estensioni richiedono un profilo su disco. Su Linux Qt WebEngine salva questi cookie e dati dei siti senza cifratura.",
+    "about.luks": "Per proteggere tutto ciò che è su disco (profilo, download, swap) usa la cifratura completa del disco: LUKS, l’opzione “Cifra i miei dati” nell’installer di Fedora.",
+    "about.paths": "I dati sono in ~/.config/Inco/IncoBrowser/, le impostazioni in ~/.config/Inco/IncoBrowser.conf. Onionize tiene lo stato di Tor in /run/user/<uid>/inco-browser, che sparisce al logout."
+  },
+  "zh": {
+    "newtab": "新标签页",
+    "about.title": "隐私意味着什么",
+    "about.intro": "Inco 在本机默认注重隐私。Onionize 是经由 Tor 的单独窗口。这不是 Tor Browser。",
+    "about.normal": "每个普通标签页",
+    "about.nohistory": "无浏览历史，无会话恢复。",
+    "about.cookies": "退出时清除 Cookie 与缓存，除非你保留登录。",
+    "about.bookmarks": "书签默认关闭，需手动启用。",
+    "about.passwords": "密码可选存于带主密码的 AES-256-GCM 保险库。",
+    "about.lan": "页面无法访问 localhost、链路本地或组播地址（可阻止对本机的常见端口扫描）。其他局域网地址不会被拦截。",
+    "about.filter": "拦截内置广告/跟踪主机列表。",
+    "onionize": "Onionize",
+    "about.onion1": "打开新进程，启动捆绑 Tor 并使用 SOCKS。",
+    "about.onion2": "该窗口可对网站隐藏你的 IP。请在 check.torproject.org 确认。",
+    "about.onion3": "不使用保险库或书签。",
+    "about.onion4": "不会让你看起来像其他 Tor 用户。指纹仍在。",
+    "about.onion5": "关闭 Onionize 会关闭该窗口。",
+    "about.searches": "搜索",
+    "about.search1": "HTTPS 对普通防火墙隐藏查询。对方仍能看到你用的是哪个搜索引擎。",
+    "about.search2": "拦截 HTTPS 的网络仍可能读取查询。",
+    "about.search3": "你的搜索引擎能看到关键词。普通标签页还能看到你的 IP。",
+    "about.search4": "在可用的 Onionize 窗口中，搜索引擎看到的是 Tor 出口而非你的 IP。",
+    "about.search5": "在 设置 > 搜索 中选择搜索引擎：DuckDuckGo（默认）、Startpage，或你已有的自定义地址。新标签页搜索框、地址栏和 Onionize 窗口都使用它。",
+    "about.not": "不是这些产品",
+    "about.notvpn": "不是 VPN。",
+    "about.nottor": "不是 Tor Browser。",
+    "about.notad": "不是广告拦截器。",
+    "about.footer": "隐私 = 磁盘上无日记。Onionize = Tor 路径（检查页为绿色时）。",
+    "about.onion6": "线路面板从 Tor 本地控制端口读取守卫、中间和出口中继。读取不到的内容显示为未知。",
+    "about.state.on": "默认开启",
+    "about.state.always": "始终",
+    "about.state.off": "默认关闭",
+    "cmp.title": "Inco 对比 Chrome 与 Firefox",
+    "cmp.history": "保存浏览历史",
+    "cmp.cookies": "关闭后保留 Cookie",
+    "cmp.trackers": "默认拦截跟踪器",
+    "cmp.search": "默认搜索引擎",
+    "cmp.telemetry": "默认发送使用数据",
+    "cmp.tor": "内置 Tor 窗口",
+    "v.yes": "是",
+    "v.no": "否",
+    "v.google": "Google",
+    "v.ddg": "DuckDuckGo",
+    "about.ext": "可在 设置 > 扩展程序 中从文件夹或 .zip/.crx 文件安装 Chrome 扩展程序（Manifest V3）。",
+    "about.ext.title": "扩展程序",
+    "about.ext1": "可选功能，默认关闭。从已解压的文件夹或 .zip/.crx 文件安装，然后在 设置 > 扩展程序 中逐个启用。",
+    "about.ext2": "只加载 Manifest V3 扩展程序，且只支持部分 Chrome 扩展程序 API。有些扩展程序（例如 uBlock Origin Lite）能加载，但无法完全正常工作。",
+    "about.ext3": "扩展程序绝不会在 Onionize 窗口中加载。",
+    "about.ext4": "启用扩展程序后，普通窗口使用磁盘上的配置文件。扩展程序文件及其数据以未加密方式保存在那里。",
+    "cmp.ext": "运行 Chrome 扩展程序",
+    "v.ffext": "自有附加组件格式",
+    "v.extpartial": "可选，部分支持",
+    "cmp.note": "全新安装时的默认设置。Chrome 和 Firefox 的大多数选项可在设置中更改。",
+    "about.state.optional": "可选",
+    "about.disk": "磁盘上的数据",
+    "about.memory": "不保留登录且未启用扩展程序时，普通标签页的 Cookie、网站存储、已访问链接和网站权限只保存在内存中，Inco 退出后即消失。",
+    "about.sealed": "保险库密钥通过 Argon2id 由你的主密码派生。只要存在保险库，书签、过滤列表、搜索引擎和下载文件夹都会用它加密。保险库会在空闲、睡眠和锁屏时自动锁定。",
+    "about.cookiesdisk": "保留登录和扩展程序需要磁盘上的配置文件。在 Linux 上，Qt WebEngine 以未加密方式保存这些 Cookie 和网站数据。",
+    "about.luks": "若要完整保护磁盘上的所有内容（配置文件、下载、交换分区），请使用全盘加密：LUKS，即 Fedora 安装程序中的“加密我的数据”选项。",
+    "about.paths": "数据位于 ~/.config/Inco/IncoBrowser/，设置位于 ~/.config/Inco/IncoBrowser.conf。Onionize 将 Tor 状态保存在 /run/user/<uid>/inco-browser，注销后即消失。"
   }
 };
+const QUOTES = {
+  en: ["No history. No diary.", "Private by default.", "Onionize if you need Tor.", "Not Tor Browser.", "Not a VPN.", "Clear on exit.", "Local only.", "No session restore.", "Cookies die on quit.", "Vault is optional.", "Filter blocks trackers.", "Localhost is blocked.", "This is not anonymity.", "Tor is a separate window.", "Fingerprint still exists."],
+  de: ["Kein Verlauf. Kein Tagebuch.", "Standardmäßig privat.", "Onionize wenn du Tor brauchst.", "Kein Tor Browser.", "Kein VPN.", "Beim Beenden löschen.", "Nur lokal.", "Keine Sitzungswiederherstellung.", "Cookies sterben beim Beenden.", "Tresor ist optional.", "Filter blockiert Tracker.", "Localhost ist blockiert.", "Das ist keine Anonymität.", "Tor ist ein separates Fenster.", "Fingerprint bleibt."],
+  fr: ["Pas d’historique. Pas de journal.", "Privé par défaut.", "Onionize si vous avez besoin de Tor.", "Pas Tor Browser.", "Pas un VPN.", "Effacé à la sortie.", "Local seulement.", "Pas de restauration de session.", "Les cookies meurent à la sortie.", "Le coffre est optionnel.", "Le filtre bloque les trackers.", "Localhost bloqué.", "Ce n’est pas l’anonymat.", "Tor est une fenêtre séparée.", "L’empreinte existe encore."],
+  it: ["Niente cronologia. Niente diario.", "Privato di default.", "Onionize se serve Tor.", "Non è Tor Browser.", "Non è una VPN.", "Pulisce all’uscita.", "Solo locale.", "Niente ripristino sessione.", "I cookie muoiono all’uscita.", "Il vault è opzionale.", "Il filtro blocca i tracker.", "Localhost bloccato.", "Questo non è anonimato.", "Tor è una finestra separata.", "L’impronta resta."],
+  zh: ["无历史。无日记。", "默认隐私。", "需要 Tor 时用 Onionize。", "不是 Tor Browser。", "不是 VPN。", "退出时清除。", "仅本地。", "无会话恢复。", "退出时 Cookie 消失。", "保险库可选。", "过滤器拦截跟踪器。", "本机地址已拦截。", "这不是匿名。", "Tor 是单独窗口。", "指纹仍在。"]
+};
+let currentLang = "en";
 function applyLang(lang) {
-  const t = T[lang] || T.en;
+  currentLang = T[lang] ? lang : "en";
+  const t = T[currentLang];
+  document.documentElement.lang = currentLang;
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const k = el.getAttribute("data-i18n");
     if (t[k]) el.textContent = t[k];
   });
+  document.title = t["about.title"] || document.title;
 }
 window.incoApplyLang = applyLang;
+
+const quote = document.getElementById("quote");
+function speak() {
+  const list = QUOTES[currentLang] || QUOTES.en;
+  quote.textContent = list[Math.floor(Math.random() * list.length)];
+  quote.classList.add("show");
+  setTimeout(() => quote.classList.remove("show"), 2800);
+}
+setTimeout(speak, 600);
+setInterval(speak, 5500);
 </script>
 </body>
 </html>

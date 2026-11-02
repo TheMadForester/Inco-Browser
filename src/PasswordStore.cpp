@@ -1,4 +1,5 @@
 #include "PasswordStore.hpp"
+#include "PrivatePaths.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -9,18 +10,25 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QRandomGenerator>
-
-#include <openssl/evp.h>
-#include <openssl/rand.h>
+#include <QtEndian>
 
 namespace {
-constexpr int kSaltLen = 16;
-constexpr int kIvLen = 12;
-constexpr int kTagLen = 16;
-constexpr int kKeyLen = 32;
-constexpr int kIters = 200000;
-constexpr char kMagic[] = "INCO1";
+
+using namespace CryptoBox;
+
+// INCO1 (0.2.0 and older): "INCO1" | salt(16) | iv(12) | tag(16) | ct, PBKDF2 200k.
+constexpr char kMagicV1[] = "INCO1";
+constexpr int kV1Rounds = 200000;
+
+constexpr char kMagicV2[] = "INCO2";
+constexpr int kMagicLen = 5;
+constexpr quint8 kVersion = 2;
+// magic | version | kdf | mem | iter | lanes | salt
+constexpr int kParamsLen = kMagicLen + 1 + 1 + 4 + 4 + 4 + kSaltLen;
+constexpr int kWrappedLen = kIvLen + kTagLen + kKeyLen;
+constexpr int kHeaderLen = kParamsLen + kWrappedLen;
+
+const QByteArray kVaultInfo = QByteArrayLiteral("inco/vault");
 
 QByteArray jsonFromRows(const QVector<SavedLogin>& rows)
 {
@@ -35,26 +43,48 @@ QByteArray jsonFromRows(const QVector<SavedLogin>& rows)
     return QJsonDocument(arr).toJson(QJsonDocument::Compact);
 }
 
-QVector<SavedLogin> rowsFromJson(const QByteArray& json)
+bool rowsFromJson(const QByteArray& json, QVector<SavedLogin>* rows)
 {
-    QVector<SavedLogin> rows;
-    const auto doc = QJsonDocument::fromJson(json);
+    QJsonParseError err{};
+    const auto doc = QJsonDocument::fromJson(json, &err);
+    if (err.error != QJsonParseError::NoError || !doc.isArray())
+        return false;
+    rows->clear();
     for (const auto& v : doc.array()) {
         const auto o = v.toObject();
-        rows.push_back({
+        rows->push_back({
             o.value("host").toString(),
             o.value("user").toString(),
             o.value("password").toString()
         });
     }
-    return rows;
+    return true;
 }
+
+void putU32(QByteArray& out, quint32 v)
+{
+    char b[4];
+    qToBigEndian(v, b);
+    out.append(b, 4);
+}
+
+quint32 getU32(const QByteArray& in, int at)
+{
+    return qFromBigEndian<quint32>(in.constData() + at);
+}
+
 } // namespace
 
-PasswordStore::PasswordStore(const QString& path)
-    : m_path(path)
+PasswordStore::PasswordStore(const QString& path, bool lowRam)
+    : m_path(path), m_lowRam(lowRam)
 {
-    QDir().mkpath(QFileInfo(m_path).absolutePath());
+    PrivatePaths::makePrivateDir(QFileInfo(m_path).absolutePath());
+    PrivatePaths::restrictFile(m_path);
+}
+
+PasswordStore::~PasswordStore()
+{
+    lock();
 }
 
 bool PasswordStore::exists() const
@@ -62,142 +92,193 @@ bool PasswordStore::exists() const
     return QFile::exists(m_path);
 }
 
-QByteArray PasswordStore::deriveKey(const QString& master, const QByteArray& salt) const
+bool PasswordStore::looksLikeVault(const QByteArray& blob)
 {
-    QByteArray key(kKeyLen, 0);
-    const QByteArray pass = master.toUtf8();
-    if (PKCS5_PBKDF2_HMAC(pass.constData(), pass.size(),
-                          reinterpret_cast<const unsigned char*>(salt.constData()), salt.size(),
-                          kIters, EVP_sha256(), kKeyLen,
-                          reinterpret_cast<unsigned char*>(key.data())) != 1)
-        return {};
-    return key;
+    return blob.startsWith(kMagicV1) || blob.startsWith(kMagicV2);
 }
 
-QByteArray PasswordStore::encrypt(const QByteArray& plaintext) const
+void PasswordStore::wipeState()
 {
-    QByteArray iv(kIvLen, 0);
-    if (RAND_bytes(reinterpret_cast<unsigned char*>(iv.data()), kIvLen) != 1)
-        return {};
-
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    QByteArray out(plaintext.size(), 0);
-    QByteArray tag(kTagLen, 0);
-    int len = 0;
-    int outLen = 0;
-
-    bool ok =
-        ctx &&
-        EVP_EncryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr,
-                           reinterpret_cast<const unsigned char*>(m_key.constData()),
-                           reinterpret_cast<const unsigned char*>(iv.constData())) == 1 &&
-        EVP_EncryptUpdate(ctx,
-                          reinterpret_cast<unsigned char*>(out.data()), &len,
-                          reinterpret_cast<const unsigned char*>(plaintext.constData()),
-                          plaintext.size()) == 1;
-    outLen = len;
-    ok = ok && EVP_EncryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(out.data()) + len, &len) == 1;
-    outLen += len;
-    out.resize(outLen);
-    ok = ok && EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_GET_TAG, kTagLen, tag.data()) == 1;
-    EVP_CIPHER_CTX_free(ctx);
-    if (!ok)
-        return {};
-
-    return QByteArray(kMagic) + m_salt + iv + tag + out;
+    m_dataKey.clear();
+    m_header.clear();
+    for (auto& r : m_rows)
+        CryptoBox::wipe(r.password);
+    m_rows.clear();
+    m_unlocked = false;
 }
 
-QByteArray PasswordStore::decrypt(const QByteArray& blob) const
+// New salt and KEK for this password; wraps the current data key.
+bool PasswordStore::buildHeader(const QByteArray& password)
 {
-    const int prefix = int(strlen(kMagic)) + kSaltLen + kIvLen + kTagLen;
-    if (blob.size() < prefix || !blob.startsWith(kMagic))
-        return {};
+    const KdfParams params = defaultKdf(m_lowRam);
+    const QByteArray salt = randomBytes(kSaltLen);
+    if (salt.isEmpty())
+        return false;
 
-    const QByteArray iv = blob.mid(int(strlen(kMagic)) + kSaltLen, kIvLen);
-    const QByteArray tag = blob.mid(int(strlen(kMagic)) + kSaltLen + kIvLen, kTagLen);
-    const QByteArray ct = blob.mid(prefix);
+    QByteArray header(kMagicV2, kMagicLen);
+    header.append(char(kVersion));
+    header.append(char(params.kdf));
+    putU32(header, params.memoryKiB);
+    putU32(header, params.iterations);
+    putU32(header, params.lanes);
+    header.append(salt);
 
-    EVP_CIPHER_CTX* ctx = EVP_CIPHER_CTX_new();
-    QByteArray out(ct.size(), 0);
-    int len = 0;
-    int outLen = 0;
-    bool ok =
-        ctx &&
-        EVP_DecryptInit_ex(ctx, EVP_aes_256_gcm(), nullptr,
-                           reinterpret_cast<const unsigned char*>(m_key.constData()),
-                           reinterpret_cast<const unsigned char*>(iv.constData())) == 1 &&
-        EVP_DecryptUpdate(ctx,
-                          reinterpret_cast<unsigned char*>(out.data()), &len,
-                          reinterpret_cast<const unsigned char*>(ct.constData()),
-                          ct.size()) == 1;
-    outLen = len;
-    ok = ok && EVP_CIPHER_CTX_ctrl(ctx, EVP_CTRL_GCM_SET_TAG, kTagLen,
-                                   const_cast<char*>(tag.constData())) == 1;
-    ok = ok && EVP_DecryptFinal_ex(ctx, reinterpret_cast<unsigned char*>(out.data()) + len, &len) == 1;
-    outLen += len;
-    EVP_CIPHER_CTX_free(ctx);
-    if (!ok)
-        return {};
-    out.resize(outLen);
-    return out;
+    SecureKey kek;
+    if (!deriveKey(password, salt, params, kek))
+        return false;
+    QByteArray dek(reinterpret_cast<const char*>(m_dataKey.data()), int(m_dataKey.size()));
+    const QByteArray wrapped = seal(kek, dek, header);
+    CryptoBox::wipe(dek);
+    if (wrapped.size() != kWrappedLen)
+        return false;
+    m_header = header + wrapped;
+    return true;
 }
 
 bool PasswordStore::create(const QString& masterPassword)
 {
-    m_salt = QByteArray(kSaltLen, 0);
-    if (RAND_bytes(reinterpret_cast<unsigned char*>(m_salt.data()), kSaltLen) != 1)
+    wipeState();
+    QByteArray pw = masterPassword.toUtf8();
+    unsigned char* dek = m_dataKey.resize(kKeyLen);
+    bool ok = dek && randomBytes(dek, kKeyLen) && buildHeader(pw);
+    CryptoBox::wipe(pw);
+    if (!ok) {
+        wipeState();
         return false;
-    m_key = deriveKey(masterPassword, m_salt);
-    m_rows.clear();
+    }
     m_unlocked = true;
-    return persist();
+    if (!persist()) {
+        wipeState();
+        return false;
+    }
+    return true;
+}
+
+bool PasswordStore::unlockV2(const QByteArray& blob, const QByteArray& password)
+{
+    if (blob.size() < kHeaderLen + kIvLen + kTagLen || quint8(blob.at(kMagicLen)) != kVersion)
+        return false;
+    KdfParams params;
+    params.kdf = Kdf(quint8(blob.at(kMagicLen + 1)));
+    params.memoryKiB = getU32(blob, kMagicLen + 2);
+    params.iterations = getU32(blob, kMagicLen + 6);
+    params.lanes = getU32(blob, kMagicLen + 10);
+    if (params.kdf != Kdf::Argon2id && params.kdf != Kdf::Pbkdf2Sha256)
+        return false;
+    const QByteArray paramsBytes = blob.left(kParamsLen);
+    const QByteArray salt = blob.mid(kParamsLen - kSaltLen, kSaltLen);
+    const QByteArray wrapped = blob.mid(kParamsLen, kWrappedLen);
+    const QByteArray header = blob.left(kHeaderLen);
+
+    SecureKey kek;
+    if (!deriveKey(password, salt, params, kek))
+        return false;
+    QByteArray dek;
+    if (!open(kek, wrapped, paramsBytes, &dek) || dek.size() != kKeyLen) {
+        CryptoBox::wipe(dek);
+        return false;
+    }
+    m_dataKey.assign(reinterpret_cast<const unsigned char*>(dek.constData()), size_t(dek.size()));
+    CryptoBox::wipe(dek);
+
+    SecureKey vaultKey;
+    QByteArray plain;
+    if (!hkdf(m_dataKey, kVaultInfo, vaultKey)
+        || !open(vaultKey, blob.mid(kHeaderLen), header, &plain)
+        || !rowsFromJson(plain, &m_rows)) {
+        CryptoBox::wipe(plain);
+        return false;
+    }
+    CryptoBox::wipe(plain);
+    m_header = header;
+    return true;
+}
+
+bool PasswordStore::unlockV1(const QByteArray& blob, const QByteArray& password)
+{
+    const int magic = int(std::strlen(kMagicV1));
+    if (blob.size() < magic + kSaltLen + kIvLen + kTagLen)
+        return false;
+    const QByteArray salt = blob.mid(magic, kSaltLen);
+    SecureKey key;
+    QByteArray plain;
+    if (!pbkdf2(password, salt, kV1Rounds, key)
+        || !open(key, blob.mid(magic + kSaltLen), {}, &plain)
+        || !rowsFromJson(plain, &m_rows)) {
+        CryptoBox::wipe(plain);
+        return false;
+    }
+    CryptoBox::wipe(plain);
+
+    // Rewrite as INCO2 under a fresh data key; the old file is kept as a copy.
+    unsigned char* dek = m_dataKey.resize(kKeyLen);
+    if (!dek || !randomBytes(dek, kKeyLen) || !buildHeader(password))
+        return false;
+    const QString backup = CryptoBox::backupCopy(m_path, QStringLiteral(".inco1.bak"));
+    if (backup.isEmpty())
+        return false;   // no copy, no rewrite: stay on the readable INCO1 file
+    m_migrationBackup = backup;
+    // If the rewrite fails the INCO1 file is untouched (atomic write) and the
+    // next save tries again.
+    m_unlocked = true;
+    persist();
+    return true;
 }
 
 bool PasswordStore::unlock(const QString& masterPassword)
 {
-    QFile file(m_path);
-    if (!file.open(QIODevice::ReadOnly))
+    wipeState();
+    bool readOk = false;
+    const QByteArray blob = CryptoBox::readAll(m_path, &readOk);
+    if (!readOk)
         return false;
-    const QByteArray blob = file.readAll();
-    if (!blob.startsWith(kMagic) || blob.size() < int(strlen(kMagic)) + kSaltLen)
+    QByteArray pw = masterPassword.toUtf8();
+    bool ok = false;
+    const bool v2 = blob.startsWith(kMagicV2);
+    if (v2)
+        ok = unlockV2(blob, pw);
+    else if (blob.startsWith(kMagicV1))
+        ok = unlockV1(blob, pw);
+    CryptoBox::wipe(pw);
+    if (!ok) {
+        // Never leave a derived or half-unwrapped key behind after a miss.
+        wipeState();
         return false;
-
-    m_salt = blob.mid(int(strlen(kMagic)), kSaltLen);
-    m_key = deriveKey(masterPassword, m_salt);
-    const QByteArray plain = decrypt(blob);
-    if (plain.isNull() && !plain.isEmpty())
-        return false;
-    if (plain.isEmpty() && blob.size() > int(strlen(kMagic)) + kSaltLen + kIvLen + kTagLen + 2)
-        return false;
-
-    // empty vault is valid ("[]")
-    if (plain.isEmpty())
-        return false;
-
-    m_rows = rowsFromJson(plain);
+    }
     m_unlocked = true;
+    // The INCO2 file just opened and verified from disk, so the INCO1 copy
+    // kept by the migration is no longer needed.
+    if (v2)
+        CryptoBox::removeBackups(m_path + QStringLiteral(".inco1.bak"));
     return true;
 }
 
-
 bool PasswordStore::changeMasterPassword(const QString& oldPw, const QString& newPw)
 {
-    if (!unlock(oldPw))
+    if (m_unlocked) {
+        // Check the old password on a separate instance so a typo does not
+        // lock the open vault.
+        PasswordStore probe(m_path, m_lowRam);
+        if (!probe.unlock(oldPw))
+            return false;
+    } else if (!unlock(oldPw)) {
         return false;
-    const auto rows = m_rows;
-    lock();
-    if (!create(newPw))
+    }
+    // Same data key, new salt and KEK: files sealed with subkeys stay valid.
+    QByteArray pw = newPw.toUtf8();
+    const QByteArray previous = m_header;
+    const bool ok = buildHeader(pw);
+    CryptoBox::wipe(pw);
+    if (!ok || !persist()) {
+        m_header = previous;
         return false;
-    m_rows = rows;
-    return persist();
+    }
+    return true;
 }
 
 void PasswordStore::lock()
 {
-    m_key.fill('\0');
-    m_key.clear();
-    m_rows.clear();
-    m_unlocked = false;
+    wipeState();
 }
 
 QVector<SavedLogin> PasswordStore::all() const
@@ -205,17 +286,26 @@ QVector<SavedLogin> PasswordStore::all() const
     return m_unlocked ? m_rows : QVector<SavedLogin>{};
 }
 
+bool PasswordStore::subkey(const QByteArray& purpose, SecureKey& out) const
+{
+    if (!m_unlocked || m_dataKey.isEmpty())
+        return false;
+    return hkdf(m_dataKey, purpose, out);
+}
+
 bool PasswordStore::persist() const
 {
-    if (!m_unlocked)
+    if (!m_unlocked || m_header.size() != kHeaderLen)
         return false;
-    const QByteArray blob = encrypt(jsonFromRows(m_rows));
-    if (blob.isEmpty())
+    SecureKey vaultKey;
+    if (!hkdf(m_dataKey, kVaultInfo, vaultKey))
         return false;
-    QFile file(m_path);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate))
+    QByteArray json = jsonFromRows(m_rows);
+    const QByteArray body = seal(vaultKey, json, m_header);
+    CryptoBox::wipe(json);
+    if (body.isEmpty())
         return false;
-    return file.write(blob) == blob.size();
+    return CryptoBox::writeAtomic(m_path, m_header + body);
 }
 
 bool PasswordStore::upsert(const SavedLogin& login)

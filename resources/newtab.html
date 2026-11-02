@@ -3,61 +3,170 @@
 <head>
 <meta charset="utf-8">
 <title>New Tab</title>
+<link rel="stylesheet" href="inco.css">
 <style>
-  html, body { margin: 0; height: 100%; background: #0e0e0e; color: #888; font-family: system-ui, sans-serif; display: flex; align-items: center; justify-content: center; }
-  .box { text-align: center; width: min(620px, 92vw); }
-  img { width: 220px; height: 220px; object-fit: contain; }
-  .row { margin: 28px 0 16px; display: flex; gap: 10px; align-items: center; }
-  input[type="search"] { flex: 1; box-sizing: border-box; background: #1a1a1a; color: #eee; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; font-size: 16px; outline: none; }
-  .onion { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 12px; padding: 8px 12px; color: #ddd; text-decoration: none; font-size: 13px; user-select: none; }
-  .onion:hover { background: #222; color: #fff; }
-  .sw { width: 34px; height: 20px; border-radius: 10px; background: #333; position: relative; }
-  .sw i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: #ccc; }
-  #pins { margin: 18px 0 0; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
-  #pins a { color: #ddd; text-decoration: none; font-size: 13px; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 999px; padding: 6px 12px; }
-  #pins a:hover { background: #242424; color: #fff; }
-  p { margin: 16px 0 0; font-size: 15px; }
-  a { color: #ddd; }
+  html, body { height: 100%; overflow: hidden; }
+  body { display: flex; align-items: center; justify-content: center; }
+  .home {
+    width: min(640px, 92vw);
+    display: flex; flex-direction: column; align-items: stretch; gap: 22px;
+    position: relative; z-index: 1;
+  }
+  .logo { display: block; width: 200px; height: 200px; object-fit: contain; margin: 0 auto; }
+
+  /* Search sits straight on the page: an underline, no box around it. */
+  .search {
+    display: flex; gap: 14px; align-items: center;
+    border-bottom: 1px solid var(--line-strong);
+    padding: 0 2px 2px;
+    transition: border-color .15s;
+  }
+  .search:focus-within { border-bottom-color: var(--amber-line); }
+  .search input[type="search"] {
+    flex: 1; min-width: 0;
+    background: transparent; border: 0; border-radius: 0;
+    padding: 12px 2px; font-size: 16px;
+  }
+  .search input[type="search"]:focus { border: 0; box-shadow: none; }
+  .search input[type="search"]::-webkit-search-cancel-button { filter: invert(.6); }
+  .search .btn {
+    background: transparent; border-color: transparent;
+    padding: 6px 4px 6px 8px; color: var(--label);
+  }
+  .search .btn:hover { background: transparent; border-color: transparent; color: var(--row); }
+  .search .btn:focus-visible { border-color: transparent; box-shadow: none; color: var(--amber-text); }
+  .search .btn.on, .search .btn.on:hover { background: transparent; border-color: transparent; color: var(--amber-text); }
+
+  /* Bookmarks: a quiet label and plain links, no card. */
+  .pins:not(:has(#pins a)) { display: none; }
+  .pins { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+  .pins .section-title {
+    margin: 0; font-size: 11px; font-weight: 600; letter-spacing: .08em;
+    text-transform: uppercase; color: var(--sub);
+  }
+  #pins { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px 6px; }
+  #pins a {
+    color: var(--label); text-decoration: none; font-size: 13px;
+    border-radius: 8px; padding: 5px 10px;
+    max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    transition: background .15s, color .15s;
+    animation: incoRise .18s ease-out both;
+  }
+  #pins a:hover { background: #171717; color: var(--amber-text); }
+  #pins a:focus-visible { outline: 0; background: #171717; color: var(--amber-text); }
+
+  .links { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; }
+  .links a {
+    color: var(--footer); text-decoration: none; font-size: 12px;
+    transition: color .15s;
+  }
+  .links a:hover, .links a:focus-visible { outline: 0; color: var(--amber-text); }
+  .home > * { animation: incoRise .22s ease-out both; }
+  .home > *:nth-child(2) { animation-delay: 25ms; }
+  .home > *:nth-child(3) { animation-delay: 50ms; }
+  .home > *:nth-child(4) { animation-delay: 75ms; }
 </style>
 </head>
 <body>
-  <div class="box">
-    <img src="inco.png" alt="">
-    <form class="row" action="https://duckduckgo.com/" method="get">
-      <input type="search" name="q" data-i18n="search.placeholder" placeholder="Search privately" autofocus>
-      <a class="onion" href="#" onclick="document.title='inco-onion-toggle-'+Date.now();return false;"><span class="sw"><i></i></span><span data-i18n="onionize">Onionize</span></a>
+  <div class="ocni"><img src="ocni.png" alt=""></div>
+  <div class="quote" id="quote"></div>
+
+  <div class="home">
+    <img class="logo" src="inco.png" alt="">
+    <form class="search" action="inco://search" method="get">
+      <input type="search" name="q" data-i18n="search.placeholder" placeholder="Search privately" autocomplete="off" autofocus>
+      <a class="btn onion" href="#" role="switch" aria-checked="false"
+         onclick="document.title='inco-onion-toggle-'+Date.now();return false;"><span class="switch"></span><span data-i18n="onionize">Onionize</span></a>
     </form>
-    <div id="pins"></div>
-    <p><span data-i18n="home.private">What means</span> <a href="qrc:/about-private.html">Private</a> · <a href="qrc:/about-filter.html">Inco Filter</a></p>
+    <section class="pins">
+      <h2 class="section-title" data-i18n="home.bookmarks">Bookmarks</h2>
+      <div id="pins"></div>
+    </section>
+    <nav class="links">
+      <a href="qrc:/about-private.html" data-i18n="home.private.btn">What “private” means</a>
+      <a href="qrc:/about-filter.html" data-i18n="home.filter.link">Inco Filter</a>
+    </nav>
   </div>
+
 <script>
 const T = {
-  en: { "search.placeholder": "Search privately", "onionize": "Onionize", "home.private": "What means" },
-  de: { "search.placeholder": "Privat suchen", "onionize": "Onionize", "home.private": "Was bedeutet" },
-  fr: { "search.placeholder": "Rechercher en privé", "onionize": "Onionize", "home.private": "Que signifie" },
-  it: { "search.placeholder": "Cerca in privato", "onionize": "Onionize", "home.private": "Cosa significa" },
-  zh: { "search.placeholder": "私密搜索", "onionize": "Onionize", "home.private": "什么是" }
+  en: {
+    "page.title": "New Tab",
+    "search.placeholder": "Search privately",
+    "onionize": "Onionize",
+    "home.bookmarks": "Bookmarks",
+    "home.private.btn": "What “private” means",
+    "home.filter.link": "Inco Filter"
+  },
+  de: {
+    "page.title": "Neuer Tab",
+    "search.placeholder": "Privat suchen",
+    "onionize": "Onionize",
+    "home.bookmarks": "Lesezeichen",
+    "home.private.btn": "Was „privat“ bedeutet",
+    "home.filter.link": "Inco Filter"
+  },
+  fr: {
+    "page.title": "Nouvel onglet",
+    "search.placeholder": "Rechercher en privé",
+    "onionize": "Onionize",
+    "home.bookmarks": "Signets",
+    "home.private.btn": "Ce que « privé » veut dire",
+    "home.filter.link": "Inco Filter"
+  },
+  it: {
+    "page.title": "Nuova scheda",
+    "search.placeholder": "Cerca in privato",
+    "onionize": "Onionize",
+    "home.bookmarks": "Segnalibri",
+    "home.private.btn": "Cosa significa “privato”",
+    "home.filter.link": "Inco Filter"
+  },
+  zh: {
+    "page.title": "新标签页",
+    "search.placeholder": "私密搜索",
+    "onionize": "Onionize",
+    "home.bookmarks": "书签",
+    "home.private.btn": "“隐私”意味着什么",
+    "home.filter.link": "Inco Filter"
+  }
 };
+const QUOTES = {
+  en: ["No history. No diary.", "Private by default.", "Onionize if you need Tor.", "Not Tor Browser.", "Not a VPN.", "Clear on exit.", "Local only."],
+  de: ["Kein Verlauf. Kein Tagebuch.", "Standardmäßig privat.", "Onionize, wenn du Tor brauchst.", "Kein Tor Browser.", "Kein VPN.", "Beim Beenden löschen.", "Nur lokal."],
+  fr: ["Pas d’historique. Pas de journal.", "Privé par défaut.", "Onionize si vous avez besoin de Tor.", "Pas Tor Browser.", "Pas un VPN.", "Effacé à la sortie.", "Local seulement."],
+  it: ["Niente cronologia. Niente diario.", "Privato di default.", "Onionize se serve Tor.", "Non è Tor Browser.", "Non è una VPN.", "Pulisce all’uscita.", "Solo locale."],
+  zh: ["无历史。无日记。", "默认隐私。", "需要 Tor 时用 Onionize。", "不是 Tor Browser。", "不是 VPN。", "退出时清除。", "仅本地。"]
+};
+let currentLang = "en";
 function applyLang(lang) {
-  const t = T[lang] || T.en;
+  currentLang = T[lang] ? lang : "en";
+  const t = T[currentLang];
+  document.documentElement.lang = currentLang;
   document.querySelectorAll("[data-i18n]").forEach(el => {
     const k = el.getAttribute("data-i18n");
-    if (t[k]) {
-      if (el.tagName === "INPUT") el.placeholder = t[k];
-      else el.textContent = t[k];
-    }
+    if (!t[k]) return;
+    if (el.tagName === "INPUT") el.placeholder = t[k];
+    else el.textContent = t[k];
   });
+  document.title = t["page.title"];
 }
 window.incoApplyLang = applyLang;
-(function(){
-  const on = location.hash === '#onion';
-  const a = document.querySelector('.onion');
-  if (a && on) {
-    a.classList.add('on');
-    a.querySelector('.sw').style.background = '#b0893e';
-    a.querySelector('i').style.left = '16px';
-    a.querySelector('i').style.background = '#fff';
-  }
+
+const quote = document.getElementById("quote");
+function speak() {
+  const list = QUOTES[currentLang] || QUOTES.en;
+  quote.textContent = list[Math.floor(Math.random() * list.length)];
+  quote.classList.add("show");
+  setTimeout(() => quote.classList.remove("show"), 2800);
+}
+setTimeout(speak, 600);
+setInterval(speak, 5500);
+
+(function () {
+  const on = location.hash === "#onion";
+  const a = document.querySelector(".onion");
+  if (a && on) { a.classList.add("on"); a.setAttribute("aria-checked", "true"); }
 })();
 </script>
 </body>

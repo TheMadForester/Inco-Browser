@@ -1,5 +1,7 @@
 #pragma once
 
+#include "BlockList.hpp"
+
 #include <QFile>
 #include <QHostAddress>
 #include <QSet>
@@ -31,6 +33,18 @@ public:
         m_allow = allow;
     }
 
+    // uBlock Origin Lite host rules, nullptr while that option is off.
+    void setBlockList(const BlockList* list) { m_ubol = list; }
+
+    // Filter decision for a request; the never-block list wins over both lists.
+    bool shouldFilter(const QString& host, const QString& page,
+                      QWebEngineUrlRequestInfo::ResourceType type) const
+    {
+        if (!m_enabled || !*m_enabled || isAllowed(host))
+            return false;
+        return isFiltered(host) || (m_ubol && m_ubol->blocks(host, page, type));
+    }
+
     void interceptRequest(QWebEngineUrlRequestInfo& info) override
     {
         const QUrl url = info.requestUrl();
@@ -43,7 +57,11 @@ public:
             return;
         }
 
-        if (m_enabled && *m_enabled && !isAllowed(host) && isFiltered(host))
+        // The page or frame behind the request, for site-specific rules.
+        QString page = info.initiator().host().toLower();
+        if (page.isEmpty())
+            page = info.firstPartyUrl().host().toLower();
+        if (shouldFilter(host, page, info.resourceType()))
             info.block(true);
     }
 
@@ -85,6 +103,7 @@ private:
     }
 
     bool* m_enabled = nullptr;
+    const BlockList* m_ubol = nullptr;
     QSet<QString> m_hosts;
     QSet<QString> m_extra;
     QSet<QString> m_allow;
