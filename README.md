@@ -6,7 +6,7 @@ Private-by-default Linux browser with an optional Tor window.
 
 ## What it is
 
-Inco is a small Qt WebEngine browser for Linux. Version 1.0.0.
+Inco is a small Qt WebEngine browser for Linux. Version 1.0.1.
 
 - No history, no session restore
 - Cookies and cache cleared on quit unless you keep logins
@@ -74,14 +74,90 @@ cmake -G Ninja -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 ./build/IncoBrowser
 ```
-## Install
+## Download
 
-./scripts/install.sh
+The release has two files. They are the same browser.
 
-Open Inco Browser from the application menu.
+**Instant Use.** `Inco_Browser-<version>-x86_64.AppImage`
 
-Installs to `~/.local/lib/inco-browser/<version>/` (made read-only), with
-`~/.local/lib/inco-browser/current` and `~/.local/bin/IncoBrowser` as symlinks. No sudo.
+One portable file. Nothing is installed. Mark it executable once and run it:
+
+```bash
+chmod +x Inco_Browser-<version>-x86_64.AppImage
+./Inco_Browser-<version>-x86_64.AppImage
+```
+
+**Install.** `Inco_Browser-<version>-x86_64.install`
+
+Puts Inco in the application menu for your account. No root, no background
+program, no autostart. From a terminal:
+
+```bash
+bash Inco_Browser-<version>-x86_64.install
+```
+
+Then open Inco Browser from the menu. The installer marks the program
+executable, so launching it does not need chmod. It only writes:
+
+- `~/.local/lib/inco-browser/<version>/` (the app files, then made read-only)
+- `~/.local/lib/inco-browser/current`
+- `~/.local/bin/inco-browser` (a launcher script that runs the installed AppRun by its real path)
+- `~/.local/share/applications/inco-browser.desktop`
+- `~/.local/share/icons/hicolor/256x256/apps/inco-browser.png`
+
+If `update-desktop-database` is installed, it also refreshes
+`mimeinfo.cache` in that applications directory. It does not edit other
+desktop files. Remove the install with:
+
+```bash
+bash Inco_Browser-<version>-x86_64.install --uninstall
+```
+
+Installing copies the app files out once, so later launches do not mount
+or unpack an AppImage. That does not make Chromium or page loads instant:
+Qt WebEngine still starts its own processes. Unpacking the 1.0.0 AppImage
+(`--appimage-extract`) took 1.3 seconds on the machine used to inspect it.
+That is the squashfs unpack an install pays once, and what a launch pays
+when the AppImage cannot mount. Page startup was not measured here.
+
+1.0.1 fixes a Fedora KDE Wayland failure in the 1.0.0 AppImage: the process
+started and no usable window appeared, because the Wayland EGL plugin was
+not packed. `QT_QPA_PLATFORM=xcb` avoided that error. Whether the XWayland
+window actually paints still has to be checked on a Fedora KDE session.
+
+Check either file against `SHA256SUMS` with `sha256sum -c SHA256SUMS`.
+
+## Install from a source build
+
+`./scripts/install.sh`
+
+Open Inco Browser from the application menu. This uses the Qt you built
+against, not the bundled release. Installs to
+`~/.local/lib/inco-browser/<version>/` (made read-only), with
+`~/.local/lib/inco-browser/current` and `~/.local/bin/IncoBrowser` as
+symlinks. No sudo. A release install of the same version replaces this
+directory.
+
+## Packaging
+
+The AppImage build needs the Qt Wayland client plugins (Fedora package
+`qt6-qtwayland`, Debian `qt6-wayland`, Arch `qt6-wayland`) in addition to
+the packages under Build.
+
+```bash
+./scripts/fetch-tor.sh
+./scripts/make-appimage.sh
+```
+
+That writes both release files and `SHA256SUMS` under `build/appimage/`.
+The build stops if the Wayland EGL plugin, the xdg-shell plugin, or the
+xcb GL plugins are missing, or if libEGL or libwayland-client got bundled.
+
+Checks that do not need Qt or Tor:
+
+```bash
+bash tests/run.sh
+```
 
 ## Tor integrity check (Onionize)
 

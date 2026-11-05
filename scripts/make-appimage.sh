@@ -2,7 +2,8 @@
 # Build an AppImage of the current tree. Everything stays inside the repo:
 #   build/appimage/build     Release build
 #   build/appimage/*.AppDir  staging folder
-#   build/appimage/Inco_Browser-<version>-x86_64.AppImage
+#   build/appimage/Inco_Browser-<version>-x86_64.AppImage   (portable)
+#   build/appimage/Inco_Browser-<version>-x86_64.install   (menu installer)
 #   build/tools              linuxdeploy, linuxdeploy-plugin-qt, appimagetool,
 #                            AppImage runtime (official GitHub releases)
 # The tools are unpacked with --appimage-extract, so no FUSE mount is needed.
@@ -69,8 +70,22 @@ D
 # The strip inside linuxdeploy cannot read Fedora's .relr.dyn sections.
 export NO_STRIP=1
 export QMAKE="${QMAKE:-$(command -v qmake6 || command -v qmake)}"
-# Wayland for Plasma/GNOME sessions, offscreen for headless checks.
+# libqwayland.so packs the platform plugin, and linuxdeploy then adds the
+# shell and decoration plugins. It does not add wayland-graphics-integration-client.
+# That directory holds libqt-plugin-wayland-egl.so, which Qt loads under the
+# key "wayland-egl". Without it Plasma Wayland starts the process and never
+# paints a window (QRhiGles2 cannot create a context, so the web view stays blank).
+# The waylandcompositor module deployer is what copies that directory and the
+# Qt library the plugin links (libQt6WaylandEglClientHwIntegration).
 export EXTRA_PLATFORM_PLUGINS="libqwayland.so;libqoffscreen.so"
+if [[ ";${EXTRA_QT_MODULES:-};" != *";waylandcompositor;"* ]]; then
+  if [[ -n ${EXTRA_QT_MODULES:-} ]]; then
+    EXTRA_QT_MODULES="${EXTRA_QT_MODULES};waylandcompositor"
+  else
+    EXTRA_QT_MODULES="waylandcompositor"
+  fi
+fi
+export EXTRA_QT_MODULES
 linuxdeploy --appdir "$APPDIR" \
   --desktop-file "$OUT/inco-browser.desktop" \
   --icon-file "$ROOT/share/icons/hicolor/256x256/apps/inco-browser.png" \
@@ -84,8 +99,16 @@ mkdir -p "$APPDIR/usr/share/licenses/inco-browser"
 cp "$ROOT/LICENSE" "$APPDIR/usr/share/licenses/inco-browser/"
 "$APPDIR/usr/bin/IncoBrowser" --verify-tor | head -1
 
+# Fail the build if the Wayland EGL plugin (or the xcb fallback) did not land.
+"$ROOT/scripts/check-appdir.sh" "$APPDIR"
+
 IMG="$OUT/Inco_Browser-$VER-x86_64.AppImage"
-rm -f "$IMG"
+INSTALLER="$OUT/Inco_Browser-$VER-x86_64.install"
+rm -f "$IMG" "$INSTALLER"
 ARCH=x86_64 VERSION="$VER" appimagetool --runtime-file "$TOOLS/runtime-x86_64" "$APPDIR" "$IMG"
-ls -lh "$IMG"
-sha256sum "$IMG"
+"$ROOT/scripts/pack-installer.sh" "$APPDIR" "$INSTALLER"
+ls -lh "$IMG" "$INSTALLER"
+(
+  cd "$OUT"
+  sha256sum "$(basename "$IMG")" "$(basename "$INSTALLER")" | tee SHA256SUMS
+)

@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-# Per-user install, no sudo:
+# Per-user install of a source build, no sudo.
+# Release downloads use the installer packed by scripts/make-appimage.sh,
+# which carries its own Qt and does not need this script.
+# Layout:
 #   ~/.local/lib/inco-browser/<version>/IncoBrowser
 #   ~/.local/lib/inco-browser/<version>/tor/        (hash-checked at runtime)
 #   ~/.local/lib/inco-browser/current -> <version>
