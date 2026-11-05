@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 # Install an extracted Inco AppDir into the current user's account.
 # No root, no autostart, no background process, no network.
+# The release "Install" download is scripts/download-install.sh, which
+# fetches the AppImage and then calls this.
 #
 #   scripts/install-appdir.sh /path/to/IncoBrowser.AppDir
 #   scripts/install-appdir.sh --uninstall
-#
-# scripts/pack-installer.sh appends the AppDir to a copy of this file.
-# Run that copy with bash; it does not need chmod.
 #
 # Writes only under $PREFIX (default $HOME/.local):
 #   lib/inco-browser/<version>/     the AppDir, then made read-only
@@ -25,9 +24,18 @@ previous=""
 live_dest=""
 kept_busy=0
 
-die() { printf 'install: %s\n' "$*" >&2; exit 1; }
+die() {
+  if declare -f ui_fail >/dev/null 2>&1; then
+    ui_fail "$*"
+  fi
+  printf 'install: %s\n' "$*" >&2
+  exit 1
+}
 
 cleanup() {
+  if declare -f ui_close >/dev/null 2>&1; then
+    ui_close || true
+  fi
   if [[ -n $stage && -d $stage ]]; then
     chmod -R u+w "$stage" 2>/dev/null || true
     rm -rf "$stage"
@@ -39,24 +47,20 @@ cleanup() {
   if [[ -n $work && -d $work ]]; then
     rm -rf "$work"
   fi
+  if [[ -n ${download_work:-} && -d $download_work ]]; then
+    rm -rf "$download_work"
+  fi
 }
 trap cleanup EXIT
 
 usage() {
   cat <<'EOF'
-Inco Browser user install.
+Install an already unpacked Inco AppDir for this account.
 
-  bash Inco_Browser-<version>-x86_64.install
-  bash Inco_Browser-<version>-x86_64.install --uninstall
+  scripts/install-appdir.sh /path/to/IncoBrowser.AppDir
+  scripts/install-appdir.sh --uninstall
 
-Puts Inco in the application menu for this account. Nothing is started
-in the background, and nothing is set to start at login. Launching the
-installed app does not need chmod.
-
-The portable AppImage is unchanged. Installing only unpacks the same
-files into your home directory so later launches skip the AppImage
-mount. Chromium still starts its own processes; this does not make
-pages open instantly.
+The release Install file is the downloader, scripts/download-install.sh.
 EOF
 }
 
@@ -72,13 +76,6 @@ check_prefix() {
   case $PREFIX in
     *$'\n'*|*'..'*) die "PREFIX is not a usable path" ;;
   esac
-}
-
-payload_line() {
-  awk '
-    /^__INCO_PAYLOAD__$/ { print NR + 1; found = 1; exit }
-    END { if (!found) exit 1 }
-  ' "$1"
 }
 
 read_version() {
@@ -414,16 +411,12 @@ main() {
     exit 0
   fi
 
-  local appdir=$cmd
-  if pl=$(payload_line "$0"); then
-    work=$(mktemp -d)
-    tail -n +"$pl" "$0" | tar -xz -C "$work"
-    appdir=$(find "$work" -mindepth 1 -maxdepth 1 -type d | head -1)
-    [[ -n $appdir ]] || die "installer payload did not contain an AppDir"
-  fi
-  [[ -n $appdir ]] || die "usage: install-appdir.sh <AppDir> | --uninstall"
-  install_tree "$appdir"
+  [[ -n $cmd ]] || die "usage: install-appdir.sh <AppDir> | --uninstall"
+  install_tree "$cmd"
 }
 
-main "$@"
-exit $?
+# The release downloader sources this file. Only run main when executed.
+if [[ ${INCO_INSTALL_LIBRARY:-} != 1 && ${BASH_SOURCE[0]} == "$0" ]]; then
+  main "$@"
+  exit $?
+fi

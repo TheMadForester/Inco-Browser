@@ -68,13 +68,20 @@ Instant Use: Inco_Browser-<version>-x86_64.AppImage
   chmod +x the file once, then run it. Nothing is installed.
 
 Install: Inco_Browser-<version>-x86_64.install
+  A small script. It downloads the AppImage and SHA256SUMS from the
+  GitHub release, checks the file, and only then adds the menu entry.
   bash Inco_Browser-<version>-x86_64.install
-  Opens from the application menu afterwards. No chmod, no root, no
-  autostart, no background program. Files go under ~/.local only.
+  Nothing is installed if the download or the checksum fails.
+  No root, no autostart, no background program, no updater.
+  On KDE it uses kdialog for progress when that is already installed.
+  On GNOME it uses zenity. Otherwise it prints the steps.
   Remove with: bash Inco_Browser-<version>-x86_64.install --uninstall
 
-Installing unpacks the app once so later launches skip the AppImage
-mount. It does not make Chromium startup instant.
+The script unpacks the AppImage after the check, so later launches do
+not mount it. That does not make Chromium startup instant.
+
+The release must be public (a pre-release is fine). A draft is not
+downloadable without a login, so the installer cannot use a draft.
 
 1.0.1 packs the Wayland EGL plugin that 1.0.0 left out. Without it,
 Fedora KDE Wayland started the process and showed no usable window.
