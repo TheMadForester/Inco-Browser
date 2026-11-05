@@ -58,8 +58,10 @@ for banned in libEGL.so.1 libGL.so.1 libOpenGL.so.0 libGLdispatch.so.0 libwaylan
   fi
 done
 
-# Follow Qt/Wayland NEEDED edges of the EGL plugin. Host libraries above
-# are allowed to be absent. Anything else Qt-related must be in usr/lib.
+# Follow the Wayland EGL plugin and the Qt Wayland libraries it pulls in.
+# libQt6Gui and libQt6Core are required when that closure links them, but
+# their own NEEDED entries stay on the host (fontconfig, X11, harfbuzz,
+# freetype, zlib) and are not walked.
 host_lib() {
   case $1 in
     libc.so.6|libm.so.6|libdl.so.2|libpthread.so.0|librt.so.1|ld-linux*.so.2)
@@ -107,7 +109,7 @@ while [[ ${#queue[@]} -gt 0 ]]; do
     if is_elf "$APPDIR/$bundled"; then
       note "NEEDED $soname of $(basename "$rel"): bundled"
       case $soname in
-        libQt6*|libwayland-egl.so.*)
+        libQt6Wayland*|libwayland-egl.so.*)
           enqueue "$bundled" ;;
       esac
     else

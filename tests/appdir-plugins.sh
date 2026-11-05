@@ -32,13 +32,33 @@ echo 'int off(void){return 0;}' | cc_so "$pass_dir/usr/plugins/platforms/libqoff
 echo 'int xegl(void){return 0;}' | cc_so "$pass_dir/usr/plugins/xcbglintegrations/libqxcb-egl-integration.so"
 echo 'int xglx(void){return 0;}' | cc_so "$pass_dir/usr/plugins/xcbglintegrations/libqxcb-glx-integration.so"
 echo 'int client(void){return 0;}' | cc_so "$pass_dir/usr/lib/libQt6WaylandClient.so.6" -Wl,-soname,libQt6WaylandClient.so.6
-echo 'int eglhw(void){return 1;}' | cc_so "$tmp/link/libQt6WaylandEglClientHwIntegration.so.6" \
-  -Wl,-soname,libQt6WaylandEglClientHwIntegration.so.6
+
+# Host libraries Qt Gui/Core link and that AppImages leave on the system.
+mkdir -p "$tmp/host"
+echo 'int fc(void){return 1;}' | cc_so "$tmp/host/libfontconfig.so.1" -Wl,-soname,libfontconfig.so.1
+echo 'int x11(void){return 1;}' | cc_so "$tmp/host/libX11.so.6" -Wl,-soname,libX11.so.6
+echo 'int hb(void){return 1;}' | cc_so "$tmp/host/libharfbuzz.so.0" -Wl,-soname,libharfbuzz.so.0
+echo 'int ft(void){return 1;}' | cc_so "$tmp/host/libfreetype.so.6" -Wl,-soname,libfreetype.so.6
+echo 'int zed(void){return 1;}' | cc_so "$tmp/host/libz.so.1" -Wl,-soname,libz.so.1
+echo 'extern int zed(void); int core(void){return zed();}' \
+  | cc_so "$tmp/link/libQt6Core.so.6" -Wl,-soname,libQt6Core.so.6 \
+      -L"$tmp/host" -Wl,--no-as-needed -l:libz.so.1
+echo 'extern int fc(void); extern int x11(void); extern int hb(void); extern int ft(void); extern int zed(void);
+      int gui(void){return fc()+x11()+hb()+ft()+zed();}' \
+  | cc_so "$tmp/link/libQt6Gui.so.6" -Wl,-soname,libQt6Gui.so.6 \
+      -L"$tmp/host" -Wl,--no-as-needed \
+      -l:libfontconfig.so.1 -l:libX11.so.6 -l:libharfbuzz.so.0 -l:libfreetype.so.6 -l:libz.so.1
 echo 'int wlegl(void){return 2;}' | cc_so "$tmp/link/libwayland-egl.so.1" -Wl,-soname,libwayland-egl.so.1
-echo 'extern int eglhw(void); extern int wlegl(void); int plug(void){return eglhw()+wlegl();}' \
+echo 'extern int gui(void); extern int core(void); extern int wlegl(void);
+      int eglhw(void){return gui()+core()+wlegl();}' \
+  | cc_so "$tmp/link/libQt6WaylandEglClientHwIntegration.so.6" \
+      -Wl,-soname,libQt6WaylandEglClientHwIntegration.so.6 \
+      -L"$tmp/link" -Wl,--no-as-needed \
+      -l:libQt6Gui.so.6 -l:libQt6Core.so.6 -l:libwayland-egl.so.1
+echo 'extern int eglhw(void); int plug(void){return eglhw();}' \
   | cc_so "$pass_dir/usr/plugins/wayland-graphics-integration-client/libqt-plugin-wayland-egl.so" \
       -L"$tmp/link" -Wl,--no-as-needed \
-      -l:libQt6WaylandEglClientHwIntegration.so.6 -l:libwayland-egl.so.1
+      -l:libQt6WaylandEglClientHwIntegration.so.6
 
 # Dependency is not bundled yet: the checker must fail.
 if "$CHECK" "$pass_dir"; then
@@ -48,6 +68,8 @@ fi
 
 cp -a "$tmp/link/libQt6WaylandEglClientHwIntegration.so.6" "$pass_dir/usr/lib/"
 cp -a "$tmp/link/libwayland-egl.so.1" "$pass_dir/usr/lib/"
+cp -a "$tmp/link/libQt6Gui.so.6" "$tmp/link/libQt6Core.so.6" "$pass_dir/usr/lib/"
+# fontconfig, X11, harfbuzz, freetype and zlib stay out of the AppDir.
 "$CHECK" "$pass_dir"
 
 # The 1.0.0 failure mode: everything except the graphics integration plugin.
