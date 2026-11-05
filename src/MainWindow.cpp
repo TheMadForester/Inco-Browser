@@ -224,14 +224,6 @@ void MainWindow::closeEvent(QCloseEvent* event)
     m_settingsStore.save(m_settings);
     lockAll(false);
     QMainWindow::closeEvent(event);
-    if (!event->isAccepted())
-        return;
-    const auto tops = QApplication::topLevelWidgets();
-    for (QWidget* w : tops) {
-        if (w != this && w->isVisible() && qobject_cast<MainWindow*>(w))
-            return;
-    }
-    QApplication::quit();
 }
 
 bool MainWindow::eventFilter(QObject* watched, QEvent* event)
