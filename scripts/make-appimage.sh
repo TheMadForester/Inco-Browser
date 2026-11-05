@@ -3,7 +3,7 @@
 #   build/appimage/build     Release build
 #   build/appimage/*.AppDir  staging folder
 #   build/appimage/Inco_Browser-<version>-x86_64.AppImage   (portable)
-#   build/appimage/Inco_Browser-<version>-x86_64.install   (menu installer)
+#   build/appimage/Inco_Browser-<version>-x86_64.install   (small downloader)
 #   build/tools              linuxdeploy, linuxdeploy-plugin-qt, appimagetool,
 #                            AppImage runtime (official GitHub releases)
 # The tools are unpacked with --appimage-extract, so no FUSE mount is needed.
@@ -106,7 +106,9 @@ IMG="$OUT/Inco_Browser-$VER-x86_64.AppImage"
 INSTALLER="$OUT/Inco_Browser-$VER-x86_64.install"
 rm -f "$IMG" "$INSTALLER"
 ARCH=x86_64 VERSION="$VER" appimagetool --runtime-file "$TOOLS/runtime-x86_64" "$APPDIR" "$IMG"
-"$ROOT/scripts/pack-installer.sh" "$APPDIR" "$INSTALLER"
+# The Install download is a small script. It fetches this AppImage from
+# the GitHub release. It does not contain the browser.
+"$ROOT/scripts/emit-downloader.sh" "$VER" "$INSTALLER"
 ls -lh "$IMG" "$INSTALLER"
 (
   cd "$OUT"

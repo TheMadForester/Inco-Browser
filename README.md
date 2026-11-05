@@ -89,12 +89,21 @@ chmod +x Inco_Browser-<version>-x86_64.AppImage
 
 **Install.** `Inco_Browser-<version>-x86_64.install`
 
-Puts Inco in the application menu for your account. No root, no background
-program, no autostart. From a terminal:
+A small script, not a copy of the browser. It downloads the AppImage and
+`SHA256SUMS` from the GitHub release, checks the file, and only then puts
+Inco in the application menu. Nothing is installed if the download or the
+checksum fails. No root, no background program, no autostart, no updater.
+From a terminal:
 
 ```bash
 bash Inco_Browser-<version>-x86_64.install
 ```
+
+On KDE the script uses kdialog for a progress window when kdialog is
+already installed. On GNOME it uses zenity the same way. Otherwise the
+steps are printed in the terminal. It does not ship its own graphical
+toolkit: that would be a second large runtime, which is what the AppImage
+avoids.
 
 Then open Inco Browser from the menu. The installer marks the program
 executable, so launching it does not need chmod. It only writes:
@@ -113,19 +122,19 @@ desktop files. Remove the install with:
 bash Inco_Browser-<version>-x86_64.install --uninstall
 ```
 
-Installing copies the app files out once, so later launches do not mount
-or unpack an AppImage. That does not make Chromium or page loads instant:
+After the checksum matches, the script unpacks the AppImage once, so later
+launches do not mount it. That does not make Chromium or page loads instant:
 Qt WebEngine still starts its own processes. Unpacking the 1.0.0 AppImage
 (`--appimage-extract`) took 1.3 seconds on the machine used to inspect it.
-That is the squashfs unpack an install pays once, and what a launch pays
-when the AppImage cannot mount. Page startup was not measured here.
+Page startup was not measured here.
 
 1.0.1 fixes a Fedora KDE Wayland failure in the 1.0.0 AppImage: the process
 started and no usable window appeared, because the Wayland EGL plugin was
 not packed. `QT_QPA_PLATFORM=xcb` avoided that error. Whether the XWayland
 window actually paints still has to be checked on a Fedora KDE session.
 
-Check either file against `SHA256SUMS` with `sha256sum -c SHA256SUMS`.
+Check the AppImage against `SHA256SUMS` with `sha256sum -c SHA256SUMS`.
+The Install script does that check itself before it writes anything.
 
 ## Install from a source build
 
@@ -150,8 +159,18 @@ the packages under Build.
 ```
 
 That writes both release files and `SHA256SUMS` under `build/appimage/`.
-The build stops if the Wayland EGL plugin, the xdg-shell plugin, or the
-xcb GL plugins are missing, or if libEGL or libwayland-client got bundled.
+The `.install` file is a few dozen kilobytes. It does not contain the
+browser. The build stops if the Wayland EGL plugin, the xdg-shell plugin,
+or the xcb GL plugins are missing, or if libEGL or libwayland-client got
+bundled.
+
+Release checklist for v1.0.1:
+
+- Upload `Inco_Browser-1.0.1-x86_64.AppImage` as Instant Use.
+- Upload `Inco_Browser-1.0.1-x86_64.install` as Install.
+- Upload `SHA256SUMS`. It must list the AppImage. The installer reads that line.
+- A draft release is not enough. GitHub does not serve draft files without a login. Publish the release, or mark it as a pre-release, before testing the installer.
+- Then, on a machine that does not have the source tree: `bash Inco_Browser-1.0.1-x86_64.install`
 
 Checks that do not need Qt or Tor:
 

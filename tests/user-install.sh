@@ -4,7 +4,6 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 INSTALL="$ROOT/scripts/install-appdir.sh"
-PACK="$ROOT/scripts/pack-installer.sh"
 
 tmp=$(mktemp -d)
 trap 'chmod -R u+w "$tmp" 2>/dev/null || true; rm -rf "$tmp"' EXIT
@@ -128,11 +127,8 @@ printf 'user-icon\n' > "$home/.local/share/icons/hicolor/256x256/apps/inco-brows
 # A desktop file the user rewrote, without our marker, must survive too.
 printf 'custom\n' > "$desk"
 
-# Packed installer reinstalls over the same version. Mode 644, run with bash.
-packed=$tmp/Inco_Browser-1.0.1-x86_64.install
-"$PACK" "$appdir" "$packed"
-chmod 644 "$packed"
-bash "$packed"
+# Reinstall the same version from the AppDir.
+bash "$INSTALL" "$appdir"
 
 [[ -x $home/.local/lib/inco-browser/1.0.1/usr/bin/IncoBrowser ]]
 grep -q '^X-Inco-Install=user$' "$desk"
@@ -142,7 +138,7 @@ printf 'user-icon\n' > "$home/.local/share/icons/hicolor/256x256/apps/inco-brows
 mkdir -p "$home/.local/lib/inco-browser/2.0.0"
 printf 'version=2.0.0\nkind=user\n' > "$home/.local/lib/inco-browser/2.0.0/inco-install.txt"
 
-bash "$packed" --uninstall
+bash "$INSTALL" --uninstall
 [[ ! -e $home/.local/lib/inco-browser/1.0.1 ]]
 [[ ! -e $home/.local/lib/inco-browser/2.0.0 ]]
 [[ ! -e $home/.local/lib/inco-browser/current ]]
