@@ -101,7 +101,7 @@ executable, so launching it does not need chmod. It only writes:
 
 - `~/.local/lib/inco-browser/<version>/` (the app files, then made read-only)
 - `~/.local/lib/inco-browser/current`
-- `~/.local/bin/inco-browser`
+- `~/.local/bin/inco-browser` (a launcher script that runs the installed AppRun by its real path)
 - `~/.local/share/applications/inco-browser.desktop`
 - `~/.local/share/icons/hicolor/256x256/apps/inco-browser.png`
 

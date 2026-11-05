@@ -4,4 +4,5 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 bash "$ROOT/tests/appdir-plugins.sh"
 bash "$ROOT/tests/user-install.sh"
+bash "$ROOT/tests/install-edge.sh"
 echo "all checks passed"

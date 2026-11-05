@@ -11,7 +11,7 @@
 # Writes only under $PREFIX (default $HOME/.local):
 #   lib/inco-browser/<version>/     the AppDir, then made read-only
 #   lib/inco-browser/current        symlink to <version>
-#   bin/inco-browser                symlink to the launcher
+#   bin/inco-browser                launcher script (not a symlink)
 #   share/applications/inco-browser.desktop
 #   share/icons/hicolor/256x256/apps/inco-browser.png
 # update-desktop-database, when it exists, refreshes mimeinfo.cache
@@ -21,6 +21,8 @@ set -euo pipefail
 PREFIX="${PREFIX:-$HOME/.local}"
 stage=""
 work=""
+previous=""
+live_dest=""
 
 die() { printf 'install: %s\n' "$*" >&2; exit 1; }
 
@@ -28,6 +30,10 @@ cleanup() {
   if [[ -n $stage && -d $stage ]]; then
     chmod -R u+w "$stage" 2>/dev/null || true
     rm -rf "$stage"
+  fi
+  # The live tree was renamed aside and the new one never replaced it.
+  if [[ -n $previous && -d $previous && -n $live_dest && ! -e $live_dest ]]; then
+    mv "$previous" "$live_dest" || true
   fi
   if [[ -n $work && -d $work ]]; then
     rm -rf "$work"
@@ -90,12 +96,63 @@ valid_version() {
   [[ $1 =~ ^[0-9]+(\.[0-9]+){1,3}$ ]]
 }
 
-escape_desktop() {
-  # Desktop Exec and Icon values treat space as a separator.
+# One Exec argument, quoted per the Desktop Entry spec.
+# Inside the quotes only \, ", ` and $ are backslash-escaped.
+# A literal % is written as %%. Spaces stay spaces.
+exec_arg() {
+  local s=$1 i c out=""
+  local -i n=${#s}
+  for ((i = 0; i < n; i++)); do
+    c=${s:i:1}
+    case $c in
+      \\|\"|\`|\$) out+="\\$c" ;;
+      %) out+='%%' ;;
+      *) out+=$c ;;
+    esac
+  done
+  printf '"%s"' "$out"
+}
+
+quote_sh() {
   local s=$1
-  s=${s//\\/\\\\}
-  s=${s// /\\ }
-  printf '%s' "$s"
+  s=${s//\'/\'\\\'\'}
+  printf "'%s'" "$s"
+}
+
+# Menu installs carry inco-install.txt. Source builds do not.
+drop_stamped() {
+  local keep=${1:-} libroot=$PREFIX/lib/inco-browser d name
+  [[ -d $libroot ]] || return 0
+  while IFS= read -r d; do
+    name=$(basename "$d")
+    [[ -n $keep && $name == "$keep" ]] && continue
+    valid_version "$name" || continue
+    [[ -f $d/inco-install.txt ]] || continue
+    grep -q '^kind=user$' "$d/inco-install.txt" || continue
+    chmod -R u+w "$d"
+    rm -rf "$d"
+  done < <(find "$libroot" -mindepth 1 -maxdepth 1 -type d)
+}
+
+write_launcher() {
+  local binlink=$1 target=$2 q
+  if [[ -L $binlink ]]; then
+    case $(readlink "$binlink") in
+      *lib/inco-browser/*) rm -f "$binlink" ;;
+      *) echo "install: left $binlink alone"; return 0 ;;
+    esac
+  elif [[ -e $binlink ]] && ! grep -q '^# inco-install: user$' "$binlink"; then
+    echo "install: left $binlink alone"
+    return 0
+  fi
+  rm -f "$binlink"
+  q=$(quote_sh "$target")
+  cat > "$binlink" <<EOF
+#!/bin/sh
+# inco-install: user
+exec $q "\$@"
+EOF
+  chmod 755 "$binlink"
 }
 
 install_tree() {
@@ -111,6 +168,11 @@ install_tree() {
 
   local libroot=$PREFIX/lib/inco-browser
   local dest=$libroot/$ver
+  if [[ -e $libroot/current && ! -L $libroot/current ]]; then
+    die "refusing to replace $libroot/current because it is not a symlink"
+  fi
+  live_dest=$dest
+  previous=""
   stage=$libroot/.staging-$ver-$$
   mkdir -p "$libroot" "$PREFIX/bin" \
            "$PREFIX/share/applications" \
@@ -145,30 +207,37 @@ install_tree() {
   fi
   rm -f "$vlog"
 
+  # Rename the live tree aside, then rename the staged tree into its place.
+  # Both are on the same directory, so each mv is a rename. The old tree
+  # is removed only after the new one is in place. cleanup puts the old
+  # tree back if we exit before that.
   if [[ -e $dest ]]; then
-    chmod -R u+w "$dest"
-    rm -rf "$dest"
+    previous=$libroot/.previous-$ver-$$
+    mv "$dest" "$previous"
   fi
-  mv "$stage" "$dest"
+  if [[ -n $previous && ${INCO_INSTALL_ABORT:-} == after-rename ]]; then
+    die "aborted before publishing the new tree"
+  fi
+  if ! mv "$stage" "$dest"; then
+    die "could not move the new tree into place"
+  fi
   stage=""
-  chmod -R a-w "$dest"
-  if [[ -e $libroot/current && ! -L $libroot/current ]]; then
-    die "refusing to replace $libroot/current because it is not a symlink"
+  if [[ -n $previous ]]; then
+    local old=$previous
+    previous=""
+    chmod -R u+w "$old"
+    rm -rf "$old"
   fi
+  chmod -R a-w "$dest"
   ln -sfn "$ver" "$libroot/current"
+  drop_stamped "$ver"
 
-  local launch=$dest/$launch_rel
+  local launch=$libroot/current/$launch_rel
   [[ -x $launch ]] || die "installed launcher is not executable"
 
-  local binlink=$PREFIX/bin/inco-browser
-  if [[ -e $binlink && ! -L $binlink ]]; then
-    echo "install: left $binlink alone (it is not a symlink)"
-  else
-    ln -sfn "../lib/inco-browser/current/AppRun" "$binlink"
-    if [[ ! -x $dest/AppRun ]]; then
-      ln -sfn "../lib/inco-browser/current/usr/bin/IncoBrowser" "$binlink"
-    fi
-  fi
+  # AppRun finds apprun-hooks with dirname "$0". A symlink in bin/ would
+  # make that directory ~/.local/bin. A script execs the real path instead.
+  write_launcher "$PREFIX/bin/inco-browser" "$launch"
 
   local icon_src=$dest/usr/share/icons/hicolor/256x256/apps/inco-browser.png
   [[ -f $icon_src ]] || icon_src=$dest/inco-browser.png
@@ -182,10 +251,9 @@ install_tree() {
 
   local desktop=$PREFIX/share/applications/inco-browser.desktop
   local exec_field icon_field
-  exec_field=$(escape_desktop "$launch")
-  icon_field=$icon_dest
+  exec_field=$(exec_arg "$launch")
   if [[ -f $icon_dest ]]; then
-    icon_field=$(escape_desktop "$icon_dest")
+    icon_field=$icon_dest
   else
     icon_field=inco-browser
   fi
@@ -210,23 +278,28 @@ EOF
   echo "Installed Inco Browser $ver"
   echo "  $dest (read-only)"
   echo "  menu name: Inco Browser"
-  echo "  $binlink"
+  echo "  $PREFIX/bin/inco-browser"
   echo "Open it from the application menu. It is already executable."
   local others
   others=$(find "$libroot" -mindepth 1 -maxdepth 1 -type d ! -name "$ver" ! -name '.staging-*' -printf '%f ' 2>/dev/null || true)
-  [[ -n $others ]] && echo "  other versions kept: $others"
+  if [[ -n $others ]]; then
+    echo "  other versions kept: $others"
+  fi
 }
 
 uninstall_tree() {
   local libroot=$PREFIX/lib/inco-browser
-  [[ -L $libroot/current ]] || die "no user install at $libroot/current"
-  local ver
-  ver=$(readlink "$libroot/current")
-  valid_version "$ver" || die "current does not point at a version ($ver)"
-  local dest=$libroot/$ver
-  [[ -d $dest ]] || die "missing $dest"
-  [[ -f $dest/inco-install.txt ]] || die "$dest is not a menu install; leaving it in place"
-  grep -q '^kind=user$' "$dest/inco-install.txt" || die "$dest is not a menu install; leaving it in place"
+  local names=() d name
+  if [[ -d $libroot ]]; then
+    while IFS= read -r d; do
+      name=$(basename "$d")
+      valid_version "$name" || continue
+      [[ -f $d/inco-install.txt ]] || continue
+      grep -q '^kind=user$' "$d/inco-install.txt" || continue
+      names+=("$name")
+    done < <(find "$libroot" -mindepth 1 -maxdepth 1 -type d | sort)
+  fi
+  [[ ${#names[@]} -gt 0 ]] || die "no menu install to remove"
 
   local desktop=$PREFIX/share/applications/inco-browser.desktop
   if [[ -f $desktop ]] && grep -q '^X-Inco-Install=user$' "$desktop" \
@@ -235,31 +308,38 @@ uninstall_tree() {
   fi
 
   local icon_dest=$PREFIX/share/icons/hicolor/256x256/apps/inco-browser.png
-  local icon_src=$dest/usr/share/icons/hicolor/256x256/apps/inco-browser.png
-  [[ -f $icon_src ]] || icon_src=$dest/inco-browser.png
-  if [[ -f $icon_dest && -f $icon_src ]] && cmp -s "$icon_dest" "$icon_src"; then
-    rm -f "$icon_dest"
-  fi
+  local icon_src name
+  for name in "${names[@]}"; do
+    icon_src=$libroot/$name/usr/share/icons/hicolor/256x256/apps/inco-browser.png
+    [[ -f $icon_src ]] || icon_src=$libroot/$name/inco-browser.png
+    if [[ -f $icon_dest && -f $icon_src ]] && cmp -s "$icon_dest" "$icon_src"; then
+      rm -f "$icon_dest"
+      break
+    fi
+  done
 
   local binlink=$PREFIX/bin/inco-browser
   if [[ -L $binlink ]]; then
-    local target
-    target=$(readlink "$binlink")
-    case $target in
+    case $(readlink "$binlink") in
       *lib/inco-browser/*) rm -f "$binlink" ;;
     esac
+  elif [[ -f $binlink ]] && grep -q '^# inco-install: user$' "$binlink"; then
+    rm -f "$binlink"
   fi
 
-  chmod -R u+w "$dest"
-  rm -rf "$dest"
-  if [[ -L $libroot/current ]] && [[ $(readlink "$libroot/current") == "$ver" ]]; then
-    rm -f "$libroot/current"
+  drop_stamped ""
+  if [[ -L $libroot/current ]]; then
+    local tgt
+    tgt=$(readlink "$libroot/current")
+    if [[ ! -d $libroot/$tgt ]]; then
+      rm -f "$libroot/current"
+    fi
   fi
 
   if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$PREFIX/share/applications" >/dev/null 2>&1 || true
   fi
-  echo "Removed Inco Browser $ver"
+  echo "Removed Inco Browser ${names[*]}"
 }
 
 main() {
