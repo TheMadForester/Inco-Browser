@@ -1,4 +1,4 @@
-Inco Browser 1.0.0
+Inco Browser 1.0.1
 ==================
 
 Private-by-default Linux browser. Optional Tor window.
@@ -60,8 +60,27 @@ Then:
   cmake --build build
   ./build/IncoBrowser
 
-Install (normal app menu)
--------------------------
+Download
+--------
+The release has two files. They are the same browser.
+
+Instant Use: Inco_Browser-<version>-x86_64.AppImage
+  chmod +x the file once, then run it. Nothing is installed.
+
+Install: Inco_Browser-<version>-x86_64.install
+  bash Inco_Browser-<version>-x86_64.install
+  Opens from the application menu afterwards. No chmod, no root, no
+  autostart, no background program. Files go under ~/.local only.
+  Remove with: bash Inco_Browser-<version>-x86_64.install --uninstall
+
+Installing unpacks the app once so later launches skip the AppImage
+mount. It does not make Chromium startup instant.
+
+1.0.1 packs the Wayland EGL plugin that 1.0.0 left out. Without it,
+Fedora KDE Wayland started the process and showed no usable window.
+
+Install from a source build
+---------------------------
   ./scripts/install.sh
 
 Onionize
