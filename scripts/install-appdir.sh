@@ -23,6 +23,7 @@ stage=""
 work=""
 previous=""
 live_dest=""
+kept_busy=0
 
 die() { printf 'install: %s\n' "$*" >&2; exit 1; }
 
@@ -97,20 +98,63 @@ valid_version() {
 }
 
 # One Exec argument, quoted per the Desktop Entry spec.
-# Inside the quotes only \, ", ` and $ are backslash-escaped.
-# A literal % is written as %%. Spaces stay spaces.
+# The file is unescaped first (\n, \s, \\), then parsed as Exec.
+# So a backslash the Exec parser must see is written twice.
+# ", `, $ and \ need that. A literal % is %%. Spaces stay spaces.
 exec_arg() {
   local s=$1 i c out=""
   local -i n=${#s}
   for ((i = 0; i < n; i++)); do
     c=${s:i:1}
     case $c in
-      \\|\"|\`|\$) out+="\\$c" ;;
+      \\) out+='\\\\' ;;
+      \"|\`|\$) out+="\\\\$c" ;;
       %) out+='%%' ;;
       *) out+=$c ;;
     esac
   done
   printf '"%s"' "$out"
+}
+
+# True when /proc says some process was exec'd from a file inside $1.
+# Only the kernel's executable path counts, not the command line.
+dir_in_use() {
+  local root=$1 piddir exe
+  [[ -d $root ]] || return 1
+  root=$(cd "$root" && pwd -P) || return 1
+  for piddir in /proc/[0-9]*; do
+    [[ -e $piddir/exe ]] || continue
+    exe=$(readlink "$piddir/exe" 2>/dev/null) || continue
+    exe=${exe%' (deleted)'}
+    [[ $exe == "$root" || $exe == "$root"/* ]] && return 0
+  done
+  return 1
+}
+
+# $2 is "fail" when skipping should make uninstall report failure.
+remove_tree() {
+  local d=$1 mark=${2:-}
+  if dir_in_use "$d"; then
+    echo "install: leaving $d (a program from there is still running)"
+    [[ $mark == fail ]] && kept_busy=1
+    return 1
+  fi
+  chmod -R u+w "$d" 2>/dev/null || true
+  rm -rf -- "$d"
+}
+
+# Half-finished installs from this script only. Never a version directory.
+reclaim_side_dirs() {
+  local libroot=$1 d base
+  [[ -d $libroot ]] || return 0
+  while IFS= read -r d; do
+    base=$(basename "$d")
+    case $base in
+      .previous-*|.staging-*) ;;
+      *) continue ;;
+    esac
+    remove_tree "$d" || true
+  done < <(find "$libroot" -mindepth 1 -maxdepth 1 -type d)
 }
 
 quote_sh() {
@@ -129,8 +173,7 @@ drop_stamped() {
     valid_version "$name" || continue
     [[ -f $d/inco-install.txt ]] || continue
     grep -q '^kind=user$' "$d/inco-install.txt" || continue
-    chmod -R u+w "$d"
-    rm -rf "$d"
+    remove_tree "$d" fail || true
   done < <(find "$libroot" -mindepth 1 -maxdepth 1 -type d)
 }
 
@@ -177,6 +220,7 @@ install_tree() {
   mkdir -p "$libroot" "$PREFIX/bin" \
            "$PREFIX/share/applications" \
            "$PREFIX/share/icons/hicolor/256x256/apps"
+  reclaim_side_dirs "$libroot"
 
   rm -rf "$stage"
   mkdir -p "$stage"
@@ -225,8 +269,8 @@ install_tree() {
   if [[ -n $previous ]]; then
     local old=$previous
     previous=""
-    chmod -R u+w "$old"
-    rm -rf "$old"
+    # The running program's executable now lives in this renamed tree.
+    remove_tree "$old" || true
   fi
   chmod -R a-w "$dest"
   ln -sfn "$ver" "$libroot/current"
@@ -281,7 +325,8 @@ EOF
   echo "  $PREFIX/bin/inco-browser"
   echo "Open it from the application menu. It is already executable."
   local others
-  others=$(find "$libroot" -mindepth 1 -maxdepth 1 -type d ! -name "$ver" ! -name '.staging-*' -printf '%f ' 2>/dev/null || true)
+  others=$(find "$libroot" -mindepth 1 -maxdepth 1 -type d \
+    ! -name "$ver" ! -name '.staging-*' ! -name '.previous-*' -printf '%f ' 2>/dev/null || true)
   if [[ -n $others ]]; then
     echo "  other versions kept: $others"
   fi
@@ -289,6 +334,8 @@ EOF
 
 uninstall_tree() {
   local libroot=$PREFIX/lib/inco-browser
+  kept_busy=0
+  reclaim_side_dirs "$libroot"
   local names=() d name
   if [[ -d $libroot ]]; then
     while IFS= read -r d; do
@@ -301,30 +348,40 @@ uninstall_tree() {
   fi
   [[ ${#names[@]} -gt 0 ]] || die "no menu install to remove"
 
-  local desktop=$PREFIX/share/applications/inco-browser.desktop
-  if [[ -f $desktop ]] && grep -q '^X-Inco-Install=user$' "$desktop" \
-      && grep -q 'lib/inco-browser/' "$desktop"; then
-    rm -f "$desktop"
-  fi
-
-  local icon_dest=$PREFIX/share/icons/hicolor/256x256/apps/inco-browser.png
-  local icon_src name
+  local busy_any=0
   for name in "${names[@]}"; do
-    icon_src=$libroot/$name/usr/share/icons/hicolor/256x256/apps/inco-browser.png
-    [[ -f $icon_src ]] || icon_src=$libroot/$name/inco-browser.png
-    if [[ -f $icon_dest && -f $icon_src ]] && cmp -s "$icon_dest" "$icon_src"; then
-      rm -f "$icon_dest"
-      break
+    if dir_in_use "$libroot/$name"; then
+      busy_any=1
     fi
   done
 
-  local binlink=$PREFIX/bin/inco-browser
-  if [[ -L $binlink ]]; then
-    case $(readlink "$binlink") in
-      *lib/inco-browser/*) rm -f "$binlink" ;;
-    esac
-  elif [[ -f $binlink ]] && grep -q '^# inco-install: user$' "$binlink"; then
-    rm -f "$binlink"
+  # Leave the menu entry while a copy we installed is still running.
+  if [[ $busy_any -eq 0 ]]; then
+    local desktop=$PREFIX/share/applications/inco-browser.desktop
+    if [[ -f $desktop ]] && grep -q '^X-Inco-Install=user$' "$desktop" \
+        && grep -q 'lib/inco-browser/' "$desktop"; then
+      rm -f "$desktop"
+    fi
+
+    local icon_dest=$PREFIX/share/icons/hicolor/256x256/apps/inco-browser.png
+    local icon_src
+    for name in "${names[@]}"; do
+      icon_src=$libroot/$name/usr/share/icons/hicolor/256x256/apps/inco-browser.png
+      [[ -f $icon_src ]] || icon_src=$libroot/$name/inco-browser.png
+      if [[ -f $icon_dest && -f $icon_src ]] && cmp -s "$icon_dest" "$icon_src"; then
+        rm -f "$icon_dest"
+        break
+      fi
+    done
+
+    local binlink=$PREFIX/bin/inco-browser
+    if [[ -L $binlink ]]; then
+      case $(readlink "$binlink") in
+        *lib/inco-browser/*) rm -f "$binlink" ;;
+      esac
+    elif [[ -f $binlink ]] && grep -q '^# inco-install: user$' "$binlink"; then
+      rm -f "$binlink"
+    fi
   fi
 
   drop_stamped ""
@@ -338,6 +395,10 @@ uninstall_tree() {
 
   if command -v update-desktop-database >/dev/null 2>&1; then
     update-desktop-database "$PREFIX/share/applications" >/dev/null 2>&1 || true
+  fi
+  if [[ $kept_busy -eq 1 ]]; then
+    echo "install: quit Inco and run uninstall again to remove what is still running"
+    return 1
   fi
   echo "Removed Inco Browser ${names[*]}"
 }

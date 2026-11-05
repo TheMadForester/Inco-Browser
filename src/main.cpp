@@ -243,6 +243,11 @@ int main(int argc, char* argv[])
         qputenv("QTWEBENGINE_CHROMIUM_FLAGS", flags);
 
     QApplication app(argc, argv);
+    // QWebEngineView is a QQuickWidget with its own offscreen window. On
+    // Wayland that window is destroyed again once Chromium's GPU process is
+    // up (the GBM/Vulkan line). Qt would treat that as the last window
+    // closing and exit. The real window closes itself below.
+    QApplication::setQuitOnLastWindowClosed(false);
     QApplication::setApplicationName("IncoBrowser");
     QApplication::setApplicationVersion(INCO_VERSION);
     QApplication::setOrganizationName("Inco");

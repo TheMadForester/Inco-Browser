@@ -97,4 +97,82 @@ icon="$weird/.local/share/icons/hicolor/256x256/apps/inco-browser.png"
 [[ $("$launch" --version) == one ]]
 grep -F -q "exec '$launch'" "$weird/.local/bin/inco-browser"
 
+# Desktop-file unescape runs before Exec parsing, so escapes are doubled.
+h="$tmp/"$'sp a%b"c$d\\e`f'
+mkdir -p "$h"
+HOME="$h" PREFIX="$h/.local" bash "$INSTALL" "$app1"
+launch="$h/.local/lib/inco-browser/current/AppRun"
+desk="$h/.local/share/applications/inco-browser.desktop"
+export INCO_TEST_PATH="$launch"
+expected=$(python3 - <<'PY'
+import os
+path = os.environ["INCO_TEST_PATH"]
+out = []
+for c in path:
+    if c == "\\":
+        out.append("\\\\\\\\")
+    elif c in '"`$':
+        out.append("\\\\" + c)
+    elif c == "%":
+        out.append("%%")
+    else:
+        out.append(c)
+print('Exec="' + "".join(out) + '" %U')
+PY
+)
+[[ $(grep '^Exec=' "$desk") == "$expected" ]]
+[[ $(grep '^Icon=' "$desk") == "Icon=$h/.local/share/icons/hicolor/256x256/apps/inco-browser.png" ]]
+[[ $("$launch" --version) == one ]]
+
+# Unused side dirs from a previous run go away, including a read-only one.
+# A side dir whose executable is still running stays, then goes once it exits.
+# A shell whose command line merely mentions the path does not count.
+lib="$home/.local/lib/inco-browser"
+mkdir -p "$lib/.staging-1.0.0-8" "$lib/.previous-1.0.0-9/usr/bin"
+echo x > "$lib/.staging-1.0.0-8/n"
+echo y > "$lib/.previous-1.0.0-9/usr/bin/z"
+chmod -R a-w "$lib/.previous-1.0.0-9"
+busy="$lib/.previous-0.8.0-4"
+mkdir -p "$busy/usr/bin"
+cp "$(command -v sleep)" "$busy/usr/bin/hold"
+chmod 755 "$busy/usr/bin/hold"
+"$busy/usr/bin/hold" 40 &
+bpid=$!
+bash -c "echo $lib >/dev/null; sleep 40" &
+decoy=$!
+sleep 0.2
+[[ $(readlink "/proc/$bpid/exe") == "$busy/usr/bin/hold" ]]
+HOME="$home" PREFIX="$home/.local" bash "$INSTALL" "$app2"
+[[ ! -e $lib/.staging-1.0.0-8 ]]
+[[ ! -e $lib/.previous-1.0.0-9 ]]
+[[ -d $busy ]]
+kill "$bpid" "$decoy"
+wait "$bpid" "$decoy" 2>/dev/null || true
+HOME="$home" PREFIX="$home/.local" bash "$INSTALL" "$app2"
+[[ ! -d $busy ]]
+
+# Uninstall must not delete a version that still has a running executable.
+bhome="$tmp/busyhome"
+mkdir -p "$bhome"
+HOME="$bhome" PREFIX="$bhome/.local" bash "$INSTALL" "$app1"
+root="$bhome/.local/lib/inco-browser/1.0.1"
+chmod -R u+w "$root"
+cp "$(command -v sleep)" "$root/usr/bin/hold"
+chmod 755 "$root/usr/bin/hold"
+"$root/usr/bin/hold" 40 &
+hpid=$!
+sleep 0.2
+if HOME="$bhome" PREFIX="$bhome/.local" bash "$INSTALL" --uninstall; then
+  echo "uninstall removed a tree that is still running" >&2
+  exit 1
+fi
+[[ -d $root ]]
+[[ -f $bhome/.local/share/applications/inco-browser.desktop ]]
+[[ -f $bhome/.local/bin/inco-browser ]]
+kill "$hpid"
+wait "$hpid" 2>/dev/null || true
+HOME="$bhome" PREFIX="$bhome/.local" bash "$INSTALL" --uninstall
+[[ ! -d $root ]]
+[[ ! -e $bhome/.local/bin/inco-browser ]]
+
 echo "install edge checks passed"
